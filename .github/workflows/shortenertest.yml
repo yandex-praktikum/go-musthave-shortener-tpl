@@ -34,7 +34,7 @@ jobs:
 
     - name: Start web server
       run: |
-        go run ./cmd/server/... &
+        go run ./cmd/shortener/... &
         timeout 10 sh -c 'until lsof -i:8080; do sleep 1s; done'
 
     - name: Check basic handlers
@@ -67,7 +67,7 @@ jobs:
         echo "APP_BASE_HOST=$APP_BASE_HOST" >> $GITHUB_ENV
         echo "APP_BASE_URL=$APP_BASE_URL" >> $GITHUB_ENV
         echo "127.0.0.1 $APP_BASE_HOST" >> /etc/hosts
-        RUN_ADDRESS=localhost:$APP_PORT BASE_URL=$APP_BASE_URL go run ./cmd/server/... &
+        RUN_ADDRESS=localhost:$APP_PORT BASE_URL=$APP_BASE_URL go run ./cmd/shortener/... &
         timeout 10 sh -c "until lsof -i:$APP_PORT; do sleep 1s; done"
 
     - name: Check handlers with custom settings
