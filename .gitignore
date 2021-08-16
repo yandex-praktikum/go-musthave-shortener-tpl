@@ -11,5 +11,13 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# Binaries
+cmd/shortener/main
+cmd/shortener/shortener
+
 # Dependency directories (remove the comment below to include it)
-# vendor/
+vendor/
+
+# IDEs directories
+.idea
+.vscode
