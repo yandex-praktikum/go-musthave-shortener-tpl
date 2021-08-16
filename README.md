@@ -11,12 +11,13 @@
 Чтобы иметь возможность получать обновления автотестов и других частей шаблона выполните следующую команды:
 
 ```
-git remote add -m main template https://github.com/Yandex-Practicum/go-musthave-shortener-tpl.git
-git fetch template
+git remote add -m main template https://github.com/yandex-praktikum/go-musthave-shortener-tpl.git
 ```
 
-Для обновления кода шаблона выполните команду:
+Для обновления кода автотестов выполните команду:
 
 ```
-git pull
+git fetch template && git checkout template/main .github
 ```
+
+затем добавьте полученые изменения в свой репозиторий.
