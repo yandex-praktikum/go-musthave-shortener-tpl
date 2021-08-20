@@ -37,22 +37,22 @@ jobs:
         go run ./cmd/shortener/... &
         timeout 10 sh -c 'until lsof -i:8080; do sleep 1s; done'
 
-    - name: "[Lesson 2.1] Check basic handlers"
+    - name: "[Code increment #1] Check basic handlers"
       if: always()
       run: |
         shortenertest -test.v -test.run=^TestBasicHandlers$ ./...
 
-    - name: "[Lesson 2.2] Check handlers unit tests"
+    - name: "[Code increment #2] Check handlers unit tests"
       if: always()
       run: |
         shortenertest -test.v -test.run=^TestHandlersCovered$ ./...
 
-    - name: "[Lesson 2.3] Check HTTP framework usage"
+    - name: "[Code increment #3] Check HTTP framework usage"
       if: always()
       run: |
         shortenertest -test.v -test.run=^TestUsesHTTPFramework$ ./...
 
-    - name: "[Lesson 3.2] Check JSON API handler"
+    - name: "[Code increment #4] Check JSON API handler"
       if: always()
       run: |
         shortenertest -test.v -test.run=^TestAPIHandler\|TestUsesJSONEncoder$ ./...
@@ -70,12 +70,12 @@ jobs:
         RUN_ADDRESS=localhost:$APP_PORT BASE_URL=$APP_BASE_URL go run ./cmd/shortener/... &
         timeout 10 sh -c "until lsof -i:$APP_PORT; do sleep 1s; done"
 
-    - name: "[Lesson 4.1] Check env vars usage"
+    - name: "[Code increment #5] Check env vars usage"
       if: always()
       run: |
         TARGET_HTTP_ADDRESS=$APP_BASE_URL:$APP_PORT shortenertest -test.v -test.run=^TestBasicHandlers\|TestAPIHandler$ ./...
 
-    - name: "[Lesson 4.2] Check persistent file usage"
+    - name: "[Code increment #6] Check persistent file usage"
       if: always()
       run: |
         shortenertest -test.v -test.run=^TestGobFile$ ./...
