@@ -34,7 +34,7 @@ jobs:
 
       - name: Start web server
         run: |
-          go run ./cmd/shortener/... &
+          bash -c "go run ./cmd/shortener/... &> /dev/null" &
           timeout 10 sh -c 'until lsof -i:8080; do sleep 1s; done'
 
       - name: "[Code increment #1] Check basic handlers"
@@ -67,7 +67,7 @@ jobs:
           echo "APP_BASE_HOST=$APP_BASE_HOST" >> $GITHUB_ENV
           echo "APP_BASE_URL=$APP_BASE_URL" >> $GITHUB_ENV
           echo "127.0.0.1 $APP_BASE_HOST" >> /etc/hosts
-          SERVER_ADDRESS=:$APP_PORT BASE_URL=$APP_BASE_URL FILE_STORAGE_PATH=/tmp/$APP_BASE_HOST.db go run ./cmd/shortener/... &
+          bash -c "SERVER_ADDRESS=:$APP_PORT BASE_URL=$APP_BASE_URL FILE_STORAGE_PATH=/tmp/$APP_BASE_HOST.db go run ./cmd/shortener/... &> /dev/null" &
           timeout 10 sh -c "until lsof -i:$APP_PORT; do sleep 1s; done"
 
       - name: "[Code increment #5] Check env vars usage"
@@ -90,7 +90,7 @@ jobs:
           echo "APP_BASE_HOST=$APP_BASE_HOST" >> $GITHUB_ENV
           echo "APP_BASE_URL=$APP_BASE_URL" >> $GITHUB_ENV
           echo "127.0.0.1 $APP_BASE_HOST" >> /etc/hosts
-          BASE_URL=$APP_BASE_URL FILE_STORAGE_PATH=/tmp/$APP_BASE_HOST.db go run ./cmd/shortener/... -a=:$APP_PORT &
+          bash -c "BASE_URL=$APP_BASE_URL FILE_STORAGE_PATH=/tmp/$APP_BASE_HOST.db go run ./cmd/shortener/... -a=:$APP_PORT &> /dev/null" &
           timeout 10 sh -c "until lsof -i:$APP_PORT; do sleep 1s; done"
 
       - name: "[Code increment #7] Check flags usage"
