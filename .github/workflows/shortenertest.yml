@@ -12,88 +12,80 @@ jobs:
     runs-on: ubuntu-latest
     container: golang:1.17
     steps:
-      - name: Install deps
-        run: |
-          apt-get update && apt-get install -y --no-install-recommends lsof
-
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Download shortenertest binary
-        uses: robinraju/release-downloader@v1
+      - name: Download autotests binaries
+        uses: robinraju/release-downloader@v1.2
         with:
           repository: Yandex-Practicum/go-autotests-bin
           latest: true
-          fileName: shortenertest
+          fileName: "*"
           out-file-path: .tools
 
       - name: Setup autotest binary
         run: |
-          chmod -R +x $GITHUB_WORKSPACE/.tools/shortenertest
+          chmod -R +x $GITHUB_WORKSPACE/.tools
           mv $GITHUB_WORKSPACE/.tools/shortenertest /usr/local/bin/shortenertest
+          mv $GITHUB_WORKSPACE/.tools/random /usr/local/bin/random
 
-      - name: Start web server
+      - name: Build server binary
         run: |
-          bash -c "go run ./cmd/shortener/... &> /dev/null" &
-          timeout 10 sh -c 'until lsof -i:8080; do sleep 1s; done'
+          cd cmd/shortener
+          go build -o shortener
 
-      - name: "[Code increment #1] Check basic handlers"
+      - name: "Code increment #1"
         if: always()
         run: |
-          shortenertest -test.v -test.run=^TestBasicHandlers$ ./...
+          shortenertest -test.v -test.run=^TestIteration1$ -binary-path=cmd/shortener/shortener
 
-      - name: "[Code increment #2] Check handlers unit tests"
+      - name: "Code increment #2"
         if: always()
         run: |
-          shortenertest -test.v -test.run=^TestHandlersCovered$ ./...
+          shortenertest -test.v -test.run=^TestIteration2$ -source-path=.
 
-      - name: "[Code increment #3] Check HTTP framework usage"
+      - name: "Code increment #3"
         if: always()
         run: |
-          shortenertest -test.v -test.run=^TestUsesHTTPFramework$ ./...
+          shortenertest -test.v -test.run=^TestIteration3$ -source-path=.
 
-      - name: "[Code increment #4] Check JSON API handler"
+      - name: "Code increment #4"
         if: always()
         run: |
-          shortenertest -test.v -test.run=^TestAPIHandler\|TestUsesJSONEncoder$ ./...
+          shortenertest -test.v -test.run=^TestIteration4$ -source-path=. -binary-path=cmd/shortener/shortener
 
-      - name: Start web server with custom settings via env
+      - name: "Code increment #5"
         if: always()
         run: |
-          APP_PORT=9080
-          APP_BASE_HOST=$(tr -dc a-z < /dev/urandom | head -c 12 ; echo '.local')
-          APP_BASE_URL=http://$APP_BASE_HOST:$APP_PORT
-          echo "APP_PORT=$APP_PORT" >> $GITHUB_ENV
-          echo "APP_BASE_HOST=$APP_BASE_HOST" >> $GITHUB_ENV
-          echo "APP_BASE_URL=$APP_BASE_URL" >> $GITHUB_ENV
-          echo "127.0.0.1 $APP_BASE_HOST" >> /etc/hosts
-          bash -c "SERVER_ADDRESS=:$APP_PORT BASE_URL=$APP_BASE_URL FILE_STORAGE_PATH=/tmp/$APP_BASE_HOST.db go run ./cmd/shortener/... &> /dev/null" &
-          timeout 10 sh -c "until lsof -i:$APP_PORT; do sleep 1s; done"
+          SERVER_HOST=$(random domain)
+          SERVER_PORT=$(random unused-port)
+          shortenertest -test.v -test.run=^TestIteration5$ \
+              -binary-path=cmd/shortener/shortener \
+              -server-host=$SERVER_HOST \
+              -server-port=$SERVER_PORT \
+              -server-base-url="http://$SERVER_HOST:$SERVER_PORT"
 
-      - name: "[Code increment #5] Check env vars usage"
+      - name: "Code increment #6"
         if: always()
         run: |
-          TARGET_HTTP_ADDRESS=$APP_BASE_URL shortenertest -test.v -test.run=^TestBasicHandlers\|TestAPIHandler$ ./...
+          SERVER_PORT=$(random unused-port)
+          TEMP_FILE=$(random tempfile)
+          shortenertest -test.v -test.run=^TestIteration6$ \
+              -binary-path=cmd/shortener/shortener \
+              -server-port=$SERVER_PORT \
+              -file-storage-path=$TEMP_FILE
 
-      - name: "[Code increment #6] Check persistent file usage"
+      - name: "Code increment #7"
         if: always()
         run: |
-          PERSISTENT_FILE_PATH=/tmp/$APP_BASE_HOST.db shortenertest -test.v -test.run=^TestPersistentFile$ ./...
+          SERVER_PORT=$(random unused-port)
+          TEMP_FILE=$(random tempfile)
+          shortenertest -test.v -test.run=^TestIteration7$ \
+              -binary-path=cmd/shortener/shortener \
+              -server-port=$SERVER_PORT \
+              -file-storage-path=$TEMP_FILE
 
-      - name: Start web server with custom settings via flags
+      - name: "Code increment #8"
         if: always()
         run: |
-          APP_PORT=9088
-          APP_BASE_HOST=$(tr -dc a-z < /dev/urandom | head -c 12 ; echo '.local')
-          APP_BASE_URL=http://$APP_BASE_HOST:$APP_PORT
-          echo "APP_PORT=$APP_PORT" >> $GITHUB_ENV
-          echo "APP_BASE_HOST=$APP_BASE_HOST" >> $GITHUB_ENV
-          echo "APP_BASE_URL=$APP_BASE_URL" >> $GITHUB_ENV
-          echo "127.0.0.1 $APP_BASE_HOST" >> /etc/hosts
-          bash -c "BASE_URL=$APP_BASE_URL FILE_STORAGE_PATH=/tmp/$APP_BASE_HOST.db go run ./cmd/shortener/... -a=:$APP_PORT &> /dev/null" &
-          timeout 10 sh -c "until lsof -i:$APP_PORT; do sleep 1s; done"
-
-      - name: "[Code increment #7] Check flags usage"
-        if: always()
-        run: |
-          TARGET_HTTP_ADDRESS=$APP_BASE_URL shortenertest -test.v -test.run=^TestBasicHandlers\|TestAPIHandler$ ./...
+          shortenertest -test.v -test.run=^TestIteration8$ -source-path=. -binary-path=cmd/shortener/shortener
