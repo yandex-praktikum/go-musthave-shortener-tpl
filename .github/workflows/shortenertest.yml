@@ -25,7 +25,6 @@ jobs:
 
       - name: Setup autotest binary
         run: |
-          ls -lah $GITHUB_WORKSPACE/.tools
           chmod -R +x $GITHUB_WORKSPACE/.tools
           mv $GITHUB_WORKSPACE/.tools/shortenertest /usr/local/bin/shortenertest
           mv $GITHUB_WORKSPACE/.tools/random /usr/local/bin/random
