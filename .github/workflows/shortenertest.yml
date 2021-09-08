@@ -29,12 +29,6 @@ jobs:
           mv $GITHUB_WORKSPACE/.tools/shortenertest /usr/local/bin/shortenertest
           mv $GITHUB_WORKSPACE/.tools/random /usr/local/bin/random
 
-      - name: Setup autotest binary
-        run: |
-          chmod -R +x tools
-          mv tools/shortenertest /usr/local/bin/shortenertest
-          mv tools/random /usr/local/bin/random
-
       - name: Build server binary
         run: |
           cd cmd/shortener
