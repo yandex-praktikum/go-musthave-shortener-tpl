@@ -89,3 +89,8 @@ jobs:
         if: always()
         run: |
           shortenertest -test.v -test.run=^TestIteration8$ -source-path=. -binary-path=cmd/shortener/shortener
+
+      - name: "Code increment #9"
+        if: always()
+        run: |
+          shortenertest -test.v -test.run=^TestIteration9$ -source-path=. -binary-path=cmd/shortener/shortener
