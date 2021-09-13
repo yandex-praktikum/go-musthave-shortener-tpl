@@ -115,3 +115,8 @@ jobs:
               -source-path=. \
               -binary-path=cmd/shortener/shortener \
               -database-dsn=postgres://postgres:postgres@postgres:5432/praktikum
+
+      - name: "Code increment #11"
+        if: always()
+        run: |
+          echo "Автотесты для кодового инкремента №11 будут доступны позднее" && exit 1
