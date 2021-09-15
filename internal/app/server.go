@@ -72,6 +72,8 @@ func (s *UrlShortener) handlePostLongUrl(w http.ResponseWriter, r *http.Request)
 	id := s.persistUrl(*url)
 
 	shortUrl := fmt.Sprintf("http://localhost:8080/%d", id)
+
+	w.WriteHeader(http.StatusCreated)
 	_, errWrite := w.Write([]byte(shortUrl))
 	if errWrite != nil {
 		log.Printf("Cannot write response: %v", errWrite)
