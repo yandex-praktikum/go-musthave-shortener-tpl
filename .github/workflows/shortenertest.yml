@@ -86,7 +86,8 @@ jobs:
           shortenertest -test.v -test.run=^TestIteration6$ \
               -binary-path=cmd/shortener/shortener \
               -server-port=$SERVER_PORT \
-              -file-storage-path=$TEMP_FILE
+              -file-storage-path=$TEMP_FILE \
+              -source-path=.
 
       - name: "Code increment #7"
         if: always()
@@ -96,7 +97,8 @@ jobs:
           shortenertest -test.v -test.run=^TestIteration7$ \
               -binary-path=cmd/shortener/shortener \
               -server-port=$SERVER_PORT \
-              -file-storage-path=$TEMP_FILE
+              -file-storage-path=$TEMP_FILE \
+              -source-path=.
 
       - name: "Code increment #8"
         if: always()
@@ -119,4 +121,20 @@ jobs:
       - name: "Code increment #11"
         if: always()
         run: |
-          echo "Автотесты для кодового инкремента №11 будут доступны позднее" && exit 1
+          shortenertest -test.v -test.run=^TestIteration11$ \
+              -binary-path=cmd/shortener/shortener \
+              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
+
+      - name: "Code increment #12"
+        if: always()
+        run: |
+          shortenertest -test.v -test.run=^TestIteration12$ \
+              -binary-path=cmd/shortener/shortener \
+              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
+
+      - name: "Code increment #13"
+        if: always()
+        run: |
+          shortenertest -test.v -test.run=^TestIteration13$ \
+              -binary-path=cmd/shortener/shortener \
+              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
