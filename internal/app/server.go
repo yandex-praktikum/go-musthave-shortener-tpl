@@ -11,15 +11,18 @@ import (
 	"sync"
 )
 
+type Repository interface {
+	GetUrlBy(id int) *url.URL
+	SaveUrl(u *url.URL) int
+}
+
 type UrlShortener struct {
-	store     map[int]url.URL
-	storeLock *sync.Mutex
+	repo Repository
 }
 
 func NewServer() *http.Server {
 	shortener := UrlShortener{
-		store:     make(map[int]url.URL, 0),
-		storeLock: &sync.Mutex{},
+		repo: NewRepository(),
 	}
 	return &http.Server{
 		Addr:    "localhost:8080",
@@ -69,7 +72,7 @@ func (s *UrlShortener) handlePostLongUrl(w http.ResponseWriter, r *http.Request)
 	}
 
 	log.Printf("Shortened: %v", url)
-	id := s.persistUrl(*url)
+	id := s.repo.SaveUrl(url)
 
 	shortUrl := fmt.Sprintf("http://localhost:8080/%d", id)
 
@@ -89,7 +92,7 @@ func (s *UrlShortener) handleGetShortUrl(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	url := s.retrieveUrl(id)
+	url := s.repo.GetUrlBy(id)
 	if url == nil {
 		http.NotFound(w, r)
 		return
@@ -99,25 +102,36 @@ func (s *UrlShortener) handleGetShortUrl(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-func (s *UrlShortener) persistUrl(url url.URL) int {
-	s.storeLock.Lock()
-	defer s.storeLock.Unlock()
+type MemRepository struct {
+	store     map[int]*url.URL
+	storeLock *sync.Mutex
+}
 
-	id := len(s.store)
-	s.store[id] = url
+func NewRepository() Repository {
+	return &MemRepository{
+		store:     make(map[int]*url.URL, 0),
+		storeLock: &sync.Mutex{},
+	}
+}
+
+func (r *MemRepository) SaveUrl(u *url.URL) int {
+	r.storeLock.Lock()
+	defer r.storeLock.Unlock()
+
+	id := len(r.store)
+	r.store[id] = u
 
 	return id
 }
 
-func (s *UrlShortener) retrieveUrl(id int) *url.URL {
-	s.storeLock.Lock()
-	defer s.storeLock.Unlock()
+func (r *MemRepository) GetUrlBy(id int) *url.URL {
+	defer r.storeLock.Unlock()
 
-	url, found := s.store[id]
-	log.Printf("Found: %v", s.store)
+	url, found := r.store[id]
+	log.Printf("Found: %v", r.store)
 	if !found {
 		return nil
 	}
 
-	return &url
+	return url
 }
