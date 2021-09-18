@@ -125,6 +125,7 @@ func (r *MemRepository) SaveUrl(u *url.URL) int {
 }
 
 func (r *MemRepository) GetUrlBy(id int) *url.URL {
+	r.storeLock.Lock()
 	defer r.storeLock.Unlock()
 
 	url, found := r.store[id]
