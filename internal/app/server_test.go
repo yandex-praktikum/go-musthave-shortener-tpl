@@ -32,10 +32,10 @@ func TestHandlePostLongUrl(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(testRawUrl))
 	repo := new(RepositoryMock)
 	url, _ := url.Parse(testRawUrl)
-	sh := UrlShortener{repo}
+	sh := NewUrlShortener(repo)
 	repo.On("SaveUrl", url).Return(123)
 
-	sh.handlePostLongUrl(rw, req)
+	sh.ServeHTTP(rw, req)
 
 	res := rw.Result()
 	body, errBody := ioutil.ReadAll(res.Body)
@@ -51,10 +51,10 @@ func TestHandleGetShortUrl(t *testing.T) {
 	repo := new(RepositoryMock)
 	testRawUrl := "http://test.com"
 	url, _ := url.Parse(testRawUrl)
-	sh := UrlShortener{repo}
+	sh := NewUrlShortener(repo)
 	repo.On("GetUrlBy", 123).Return(url)
 
-	sh.handleGetShortUrl(rw, req)
+	sh.ServeHTTP(rw, req)
 
 	res := rw.Result()
 	require.Equal(t, http.StatusTemporaryRedirect, res.StatusCode, "status code")
