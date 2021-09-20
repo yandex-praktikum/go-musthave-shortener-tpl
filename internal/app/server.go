@@ -16,7 +16,7 @@ const ServiceAddr = "localhost:8080"
 
 type Repository interface {
 	GetURLBy(id int) *url.URL
-	SaveURL(u *url.URL) int
+	SaveURL(u url.URL) int
 }
 
 type URLShortener struct {
@@ -51,15 +51,15 @@ func (s *URLShortener) handlePostLongURL(w http.ResponseWriter, r *http.Request)
 	}
 
 	log.Printf("Got url to shorten: %s", rawURL)
-	url, errParse := url.Parse(string(rawURL))
+	longURL, errParse := url.Parse(string(rawURL))
 	if errParse != nil {
 		log.Printf("Cannot parse URL: %v", errParse)
 		http.Error(w, "Cannot parse URL", http.StatusBadRequest)
 		return
 	}
 
-	id := s.Repo.SaveURL(url)
-	log.Printf("Shortened: %v - %d", url, id)
+	id := s.Repo.SaveURL(*longURL)
+	log.Printf("Shortened: %v - %d", longURL, id)
 
 	shortURL := fmt.Sprintf("http://%s/%d", ServiceAddr, id)
 
@@ -93,17 +93,17 @@ func (s *URLShortener) handleGetShortURL(w http.ResponseWriter, r *http.Request)
 type MemRepository struct {
 	sync.RWMutex
 
-	store map[int]*url.URL
+	store map[int]url.URL
 }
 
 func NewRepository() Repository {
 	return &MemRepository{
 		RWMutex: sync.RWMutex{},
-		store:   make(map[int]*url.URL),
+		store:   make(map[int]url.URL),
 	}
 }
 
-func (r *MemRepository) SaveURL(u *url.URL) int {
+func (r *MemRepository) SaveURL(u url.URL) int {
 	r.RWMutex.Lock()
 	defer r.RWMutex.Unlock()
 
@@ -117,5 +117,9 @@ func (r *MemRepository) GetURLBy(id int) *url.URL {
 	r.RWMutex.Lock()
 	defer r.RWMutex.Unlock()
 
-	return r.store[id]
+	longURL, ok := r.store[id]
+	if !ok {
+		return nil
+	}
+	return &longURL
 }

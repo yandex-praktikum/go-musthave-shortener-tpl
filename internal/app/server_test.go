@@ -21,7 +21,7 @@ func (r *RepositoryMock) GetURLBy(id int) *url.URL {
 	return args.Get(0).(*url.URL)
 }
 
-func (r *RepositoryMock) SaveURL(u *url.URL) int {
+func (r *RepositoryMock) SaveURL(u url.URL) int {
 	args := r.Called(u)
 	return args.Int(0)
 }
@@ -33,7 +33,7 @@ func TestHandlePostLongURL(t *testing.T) {
 	repo := new(RepositoryMock)
 	url, _ := url.Parse(testRawURL)
 	sh := NewURLShortener(repo)
-	repo.On("SaveURL", url).Return(123)
+	repo.On("SaveURL", *url).Return(123)
 
 	sh.ServeHTTP(rw, req)
 
