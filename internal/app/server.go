@@ -91,20 +91,21 @@ func (s *URLShortener) handleGetShortURL(w http.ResponseWriter, r *http.Request)
 }
 
 type MemRepository struct {
-	store     map[int]*url.URL
-	storeLock sync.Mutex
+	sync.RWMutex
+
+	store map[int]*url.URL
 }
 
 func NewRepository() Repository {
 	return &MemRepository{
-		store:     make(map[int]*url.URL),
-		storeLock: sync.Mutex{},
+		RWMutex: sync.RWMutex{},
+		store:   make(map[int]*url.URL),
 	}
 }
 
 func (r *MemRepository) SaveURL(u *url.URL) int {
-	r.storeLock.Lock()
-	defer r.storeLock.Unlock()
+	r.RWMutex.Lock()
+	defer r.RWMutex.Unlock()
 
 	id := len(r.store)
 	r.store[id] = u
@@ -113,8 +114,8 @@ func (r *MemRepository) SaveURL(u *url.URL) int {
 }
 
 func (r *MemRepository) GetURLBy(id int) *url.URL {
-	r.storeLock.Lock()
-	defer r.storeLock.Unlock()
+	r.RWMutex.Lock()
+	defer r.RWMutex.Unlock()
 
 	return r.store[id]
 }
