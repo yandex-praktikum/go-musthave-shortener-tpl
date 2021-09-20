@@ -15,11 +15,11 @@ import (
 const ServiceAddr = "localhost:8080"
 
 type Repository interface {
-	GetUrlBy(id int) *url.URL
-	SaveUrl(u *url.URL) int
+	GetURLBy(id int) *url.URL
+	SaveURL(u *url.URL) int
 }
 
-type UrlShortener struct {
+type URLShortener struct {
 	*chi.Mux
 	Repo Repository
 }
@@ -27,50 +27,50 @@ type UrlShortener struct {
 func NewServer() *http.Server {
 	return &http.Server{
 		Addr:    ServiceAddr,
-		Handler: NewUrlShortener(NewRepository()),
+		Handler: NewURLShortener(NewRepository()),
 	}
 }
 
-func NewUrlShortener(repo Repository) http.Handler {
-	shortener := &UrlShortener{
+func NewURLShortener(repo Repository) http.Handler {
+	shortener := &URLShortener{
 		Mux:  chi.NewMux(),
 		Repo: repo,
 	}
-	shortener.Post("/", shortener.handlePostLongUrl)
-	shortener.Get("/{id}", shortener.handleGetShortUrl)
+	shortener.Post("/", shortener.handlePostLongURL)
+	shortener.Get("/{id}", shortener.handleGetShortURL)
 
 	return shortener
 }
 
-func (s *UrlShortener) handlePostLongUrl(w http.ResponseWriter, r *http.Request) {
-	rawUrl, errRead := ioutil.ReadAll(r.Body)
+func (s *URLShortener) handlePostLongURL(w http.ResponseWriter, r *http.Request) {
+	rawURL, errRead := ioutil.ReadAll(r.Body)
 	if errRead != nil {
 		log.Printf("Cannot read request: %v", errRead)
 		http.Error(w, "Cannot read request", http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("Got url to shorten: %v", rawUrl)
-	url, errParse := url.Parse(string(rawUrl))
+	log.Printf("Got url to shorten: %v", rawURL)
+	url, errParse := url.Parse(string(rawURL))
 	if errParse != nil {
 		log.Printf("Cannot parse URL: %v", errParse)
 		http.Error(w, "Cannot parse URL", http.StatusBadRequest)
 		return
 	}
 
-	id := s.Repo.SaveUrl(url)
+	id := s.Repo.SaveURL(url)
 	log.Printf("Shortened: %v - %d", url, id)
 
-	shortUrl := fmt.Sprintf("http://%s/%d", ServiceAddr, id)
+	shortURL := fmt.Sprintf("http://%s/%d", ServiceAddr, id)
 
 	w.WriteHeader(http.StatusCreated)
-	_, errWrite := w.Write([]byte(shortUrl))
+	_, errWrite := w.Write([]byte(shortURL))
 	if errWrite != nil {
 		log.Printf("Cannot write response: %v", errWrite)
 	}
 }
 
-func (s *UrlShortener) handleGetShortUrl(w http.ResponseWriter, r *http.Request) {
+func (s *URLShortener) handleGetShortURL(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -79,7 +79,7 @@ func (s *UrlShortener) handleGetShortUrl(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	url := s.Repo.GetUrlBy(id)
+	url := s.Repo.GetURLBy(id)
 	if url == nil {
 		http.NotFound(w, r)
 		return
@@ -97,12 +97,12 @@ type MemRepository struct {
 
 func NewRepository() Repository {
 	return &MemRepository{
-		store:     make(map[int]*url.URL, 0),
+		store:     make(map[int]*url.URL),
 		storeLock: sync.Mutex{},
 	}
 }
 
-func (r *MemRepository) SaveUrl(u *url.URL) int {
+func (r *MemRepository) SaveURL(u *url.URL) int {
 	r.storeLock.Lock()
 	defer r.storeLock.Unlock()
 
@@ -112,7 +112,7 @@ func (r *MemRepository) SaveUrl(u *url.URL) int {
 	return id
 }
 
-func (r *MemRepository) GetUrlBy(id int) *url.URL {
+func (r *MemRepository) GetURLBy(id int) *url.URL {
 	r.storeLock.Lock()
 	defer r.storeLock.Unlock()
 
