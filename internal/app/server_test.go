@@ -50,8 +50,8 @@ func TestHandleGetShortUrl(t *testing.T) {
 	rw := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/123", nil)
 	repo := new(RepositoryMock)
-	testRawUrl := "http://test.com"
-	url, _ := url.Parse(testRawUrl)
+	testRawURL := "http://test.com"
+	url, _ := url.Parse(testRawURL)
 	sh := NewURLShortener(repo)
 	repo.On("GetURLBy", 123).Return(url)
 
@@ -60,5 +60,5 @@ func TestHandleGetShortUrl(t *testing.T) {
 	res := rw.Result()
 	defer res.Body.Close()
 	require.Equal(t, http.StatusTemporaryRedirect, res.StatusCode, "status code")
-	require.Equal(t, testRawUrl, res.Header.Get("Location"), "location")
+	require.Equal(t, testRawURL, res.Header.Get("Location"), "location")
 }
