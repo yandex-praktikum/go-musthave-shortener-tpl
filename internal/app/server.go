@@ -50,7 +50,7 @@ func (s *URLShortener) handlePostLongURL(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	log.Printf("Got url to shorten: %v", rawURL)
+	log.Printf("Got url to shorten: %s", rawURL)
 	url, errParse := url.Parse(string(rawURL))
 	if errParse != nil {
 		log.Printf("Cannot parse URL: %v", errParse)
