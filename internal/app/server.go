@@ -92,13 +92,13 @@ func (s *UrlShortener) handleGetShortUrl(w http.ResponseWriter, r *http.Request)
 
 type MemRepository struct {
 	store     map[int]*url.URL
-	storeLock *sync.Mutex
+	storeLock sync.Mutex
 }
 
 func NewRepository() Repository {
 	return &MemRepository{
 		store:     make(map[int]*url.URL, 0),
-		storeLock: &sync.Mutex{},
+		storeLock: sync.Mutex{},
 	}
 }
 
