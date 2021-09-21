@@ -109,6 +109,7 @@ func (s *URLShortener) handlePostApiShorten(w http.ResponseWriter, r *http.Reque
 	shortURL := s.ShortenURL(*longURL)
 	shortURLJson := ShortURLJson{Result: shortURL.String()}
 
+	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	enc := json.NewEncoder(w)
 	errEnc := enc.Encode(shortURLJson)

@@ -39,7 +39,6 @@ func TestHandlePostLongURL(t *testing.T) {
 	sh.ServeHTTP(rw, req)
 
 	res := rw.Result()
-	defer res.Body.Close()
 	body, errBody := ioutil.ReadAll(res.Body)
 	require.NoError(t, errBody)
 
@@ -69,6 +68,7 @@ func TestHandlePostApiShorten(t *testing.T) {
 	require.NoError(t, errBody)
 
 	require.Equal(t, http.StatusCreated, res.StatusCode, "status code")
+	require.Equal(t, "application/json", res.Header.Get("Content-Type"), "Content-Type")
 	require.JSONEq(t, string(body), `{"result": "http://localhost:8080/123"}`)
 }
 
