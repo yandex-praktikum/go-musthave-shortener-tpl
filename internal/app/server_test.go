@@ -39,6 +39,7 @@ func TestHandlePostLongURL(t *testing.T) {
 	sh.ServeHTTP(rw, req)
 
 	res := rw.Result()
+	defer res.Body.Close()
 	body, errBody := ioutil.ReadAll(res.Body)
 	require.NoError(t, errBody)
 
