@@ -38,7 +38,7 @@ func NewURLShortener(repo Repository) http.Handler {
 		Repo: repo,
 	}
 	shortener.Post("/", shortener.handlePostLongURL)
-	shortener.Post("/api/shorten", shortener.handlePostApiShorten)
+	shortener.Post("/api/shorten", shortener.handlePostAPIShorten)
 	shortener.Get("/{id}", shortener.handleGetShortURL)
 
 	return shortener
@@ -88,7 +88,7 @@ type ShortURLJson struct {
 	Result string `json:"result"`
 }
 
-func (s *URLShortener) handlePostApiShorten(w http.ResponseWriter, r *http.Request) {
+func (s *URLShortener) handlePostAPIShorten(w http.ResponseWriter, r *http.Request) {
 	dec := json.NewDecoder(r.Body)
 	longURLJson := LongURLJson{}
 	errDec := dec.Decode(&longURLJson)
