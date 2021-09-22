@@ -3,6 +3,7 @@ module github.com/im-tollu/yandex-go-musthave-shortener-tpl
 go 1.17
 
 require (
+	github.com/caarlos0/env/v6 v6.7.1 // indirect
 	github.com/davecgh/go-spew v1.1.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.4 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
