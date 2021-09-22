@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var BaseUrl url.URL
+var BaseURL url.URL
 
 type RepositoryMock struct {
 	mock.Mock
@@ -36,7 +36,7 @@ func TestMain(m *testing.M) {
 		panic(errConf)
 	}
 
-	BaseUrl = *url
+	BaseURL = *url
 
 	code := m.Run()
 	os.Exit(code)
@@ -48,7 +48,7 @@ func TestHandlePostLongURL(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(testRawURL))
 	repo := new(RepositoryMock)
 	url, _ := url.Parse(testRawURL)
-	sh := NewURLShortener(repo, BaseUrl)
+	sh := NewURLShortener(repo, BaseURL)
 	repo.On("SaveURL", *url).Return(123)
 
 	sh.ServeHTTP(rw, req)
@@ -73,7 +73,7 @@ func TestHandlePostApiShorten(t *testing.T) {
 	)
 	repo := new(RepositoryMock)
 	url, _ := url.Parse(testRawLongURL)
-	sh := NewURLShortener(repo, BaseUrl)
+	sh := NewURLShortener(repo, BaseURL)
 	repo.On("SaveURL", *url).Return(123)
 
 	sh.ServeHTTP(rw, req)
@@ -94,7 +94,7 @@ func TestHandleGetShortUrl(t *testing.T) {
 	repo := new(RepositoryMock)
 	testRawURL := "http://test.com"
 	url, _ := url.Parse(testRawURL)
-	sh := NewURLShortener(repo, BaseUrl)
+	sh := NewURLShortener(repo, BaseURL)
 	repo.On("GetURLBy", 123).Return(url)
 
 	sh.ServeHTTP(rw, req)
