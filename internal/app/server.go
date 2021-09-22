@@ -14,8 +14,8 @@ import (
 )
 
 type Config struct {
-	ServerAddress string  `env:"SERVER_ADDRESS,required"`
-	BaseURL       url.URL `env:"BASE_URL,required"`
+	ServerAddress string  `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
+	BaseURL       url.URL `env:"BASE_URL" envDefault:"http://localhost:8080"`
 }
 
 type Repository interface {
