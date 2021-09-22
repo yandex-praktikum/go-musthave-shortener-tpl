@@ -15,7 +15,7 @@ import (
 
 type Config struct {
 	ServerAddress string  `env:"SERVER_ADDRESS,required"`
-	BaseUrl       url.URL `env:"BASE_URL,required"`
+	BaseURL       url.URL `env:"BASE_URL,required"`
 }
 
 type Repository interface {
@@ -26,21 +26,21 @@ type Repository interface {
 type URLShortener struct {
 	*chi.Mux
 	Repo    Repository
-	BaseUrl url.URL
+	BaseURL url.URL
 }
 
 func NewServer(conf Config) *http.Server {
 	return &http.Server{
 		Addr:    conf.ServerAddress,
-		Handler: NewURLShortener(NewRepository(), conf.BaseUrl),
+		Handler: NewURLShortener(NewRepository(), conf.BaseURL),
 	}
 }
 
-func NewURLShortener(repo Repository, baseUrl url.URL) http.Handler {
+func NewURLShortener(repo Repository, baseURL url.URL) http.Handler {
 	shortener := &URLShortener{
 		Mux:     chi.NewMux(),
 		Repo:    repo,
-		BaseUrl: baseUrl,
+		BaseURL: baseURL,
 	}
 	shortener.Post("/", shortener.handlePostLongURL)
 	shortener.Post("/api/shorten", shortener.handlePostAPIShorten)
@@ -77,7 +77,7 @@ func (s *URLShortener) handlePostLongURL(w http.ResponseWriter, r *http.Request)
 func (s *URLShortener) ShortenURL(longURL url.URL) url.URL {
 	id := s.Repo.SaveURL(longURL)
 	urlPath := fmt.Sprintf("%d", id)
-	shortURL, err := s.BaseUrl.Parse(urlPath)
+	shortURL, err := s.BaseURL.Parse(urlPath)
 	if err != nil {
 		log.Panicf("Cannot make URL for id [%d]", id)
 	}
