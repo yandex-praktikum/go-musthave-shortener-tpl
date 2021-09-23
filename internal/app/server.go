@@ -8,15 +8,9 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"sync"
 
 	"github.com/go-chi/chi/v5"
 )
-
-type Repository interface {
-	GetURLBy(id int) *url.URL
-	SaveURL(u url.URL) int
-}
 
 type URLShortener struct {
 	*chi.Mux
@@ -27,7 +21,7 @@ type URLShortener struct {
 func NewServer(conf Config) *http.Server {
 	return &http.Server{
 		Addr:    conf.ServerAddress,
-		Handler: NewURLShortener(NewRepository(), conf.BaseURL),
+		Handler: NewURLShortener(NewMemRepository(), conf.BaseURL),
 	}
 }
 
@@ -136,38 +130,4 @@ func (s *URLShortener) handleGetShortURL(w http.ResponseWriter, r *http.Request)
 
 	w.Header().Add("Location", url.String())
 	w.WriteHeader(http.StatusTemporaryRedirect)
-}
-
-type MemRepository struct {
-	sync.RWMutex
-
-	store map[int]url.URL
-}
-
-func NewRepository() Repository {
-	return &MemRepository{
-		RWMutex: sync.RWMutex{},
-		store:   make(map[int]url.URL),
-	}
-}
-
-func (r *MemRepository) SaveURL(u url.URL) int {
-	r.RWMutex.Lock()
-	defer r.RWMutex.Unlock()
-
-	id := len(r.store)
-	r.store[id] = u
-
-	return id
-}
-
-func (r *MemRepository) GetURLBy(id int) *url.URL {
-	r.RWMutex.Lock()
-	defer r.RWMutex.Unlock()
-
-	longURL, ok := r.store[id]
-	if !ok {
-		return nil
-	}
-	return &longURL
 }
