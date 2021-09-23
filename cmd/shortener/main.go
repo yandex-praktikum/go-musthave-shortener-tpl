@@ -6,16 +6,11 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/caarlos0/env/v6"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/internal/app"
 )
 
 func main() {
-	var conf app.Config
-	errConf := env.Parse(&conf)
-	if errConf != nil {
-		panic(errConf)
-	}
+	conf := app.LoadConfig()
 
 	server := app.NewServer(conf)
 	log.Println("Starting server...")

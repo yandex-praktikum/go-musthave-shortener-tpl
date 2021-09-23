@@ -13,11 +13,6 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type Config struct {
-	ServerAddress string  `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
-	BaseURL       url.URL `env:"BASE_URL" envDefault:"http://localhost:8080"`
-}
-
 type Repository interface {
 	GetURLBy(id int) *url.URL
 	SaveURL(u url.URL) int
