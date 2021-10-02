@@ -21,21 +21,37 @@ type URLShortener struct {
 
 type URLShortenerServer struct {
 	http.Server
+	Repo        Repository
+	StorageFile string
+}
+
+func (s *URLShortenerServer) ListenAndServe() error {
+	errRestore := s.Repo.Restore(s.StorageFile)
+	if errRestore != nil {
+		panic(errRestore)
+	}
+	log.Printf("URL repository restored from [%s].", s.StorageFile)
+	return s.Server.ListenAndServe()
 }
 
 func (s *URLShortenerServer) Shutdown(ctx context.Context) error {
-	log.Println("stopping.")
+	errBackup := s.Repo.Backup(s.StorageFile)
+	if errBackup != nil {
+		panic(errBackup)
+	}
+	log.Printf("URL repository backed up to [%s].", s.StorageFile)
 	return s.Server.Shutdown(ctx)
 }
 
 func NewServer(conf Config) *URLShortenerServer {
 	repo := NewMemRepository()
-
 	return &URLShortenerServer{
 		Server: http.Server{
 			Addr:    conf.ServerAddress,
 			Handler: NewURLShortener(repo, conf.BaseURL),
 		},
+		Repo:        repo,
+		StorageFile: conf.StorageFile,
 	}
 }
 
