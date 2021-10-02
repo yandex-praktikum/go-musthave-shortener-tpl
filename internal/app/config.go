@@ -1,6 +1,7 @@
 package app
 
 import (
+	"flag"
 	"net/url"
 
 	"github.com/caarlos0/env/v6"
@@ -18,5 +19,20 @@ func LoadConfig() Config {
 	if errConf != nil {
 		panic(errConf)
 	}
+
+	var baseURLStr string
+	flag.StringVar(&conf.ServerAddress, "a", conf.ServerAddress, "Server address")
+	flag.StringVar(&conf.StorageFile, "f", conf.StorageFile, "File storage path")
+	flag.StringVar(&baseURLStr, "b", conf.BaseURL.String(), "Base URL")
+	flag.Parse()
+
+	if baseURLStr > "" {
+		baseURL, errParse := url.Parse(baseURLStr)
+		if errParse != nil {
+			panic(errParse)
+		}
+		conf.BaseURL = *baseURL
+	}
+
 	return conf
 }
