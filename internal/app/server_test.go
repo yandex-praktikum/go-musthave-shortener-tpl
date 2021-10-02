@@ -7,11 +7,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
+
+var BaseURL url.URL
 
 type RepositoryMock struct {
 	mock.Mock
@@ -27,13 +30,25 @@ func (r *RepositoryMock) SaveURL(u url.URL) int {
 	return args.Int(0)
 }
 
+func TestMain(m *testing.M) {
+	url, errConf := url.Parse("http://localhost:8080")
+	if errConf != nil {
+		panic(errConf)
+	}
+
+	BaseURL = *url
+
+	code := m.Run()
+	os.Exit(code)
+}
+
 func TestHandlePostLongURL(t *testing.T) {
 	rw := httptest.NewRecorder()
 	testRawURL := "http://test.com"
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(testRawURL))
 	repo := new(RepositoryMock)
 	url, _ := url.Parse(testRawURL)
-	sh := NewURLShortener(repo)
+	sh := NewURLShortener(repo, BaseURL)
 	repo.On("SaveURL", *url).Return(123)
 
 	sh.ServeHTTP(rw, req)
@@ -44,7 +59,7 @@ func TestHandlePostLongURL(t *testing.T) {
 	require.NoError(t, errBody)
 
 	require.Equal(t, http.StatusCreated, res.StatusCode, "status code")
-	require.Equal(t, string(body), "http://localhost:8080/123")
+	require.Equal(t, "http://localhost:8080/123", string(body))
 }
 
 func TestHandlePostApiShorten(t *testing.T) {
@@ -58,7 +73,7 @@ func TestHandlePostApiShorten(t *testing.T) {
 	)
 	repo := new(RepositoryMock)
 	url, _ := url.Parse(testRawLongURL)
-	sh := NewURLShortener(repo)
+	sh := NewURLShortener(repo, BaseURL)
 	repo.On("SaveURL", *url).Return(123)
 
 	sh.ServeHTTP(rw, req)
@@ -70,7 +85,7 @@ func TestHandlePostApiShorten(t *testing.T) {
 
 	require.Equal(t, http.StatusCreated, res.StatusCode, "status code")
 	require.Equal(t, "application/json", res.Header.Get("Content-Type"), "Content-Type")
-	require.JSONEq(t, string(body), `{"result": "http://localhost:8080/123"}`)
+	require.JSONEq(t, `{"result": "http://localhost:8080/123"}`, string(body))
 }
 
 func TestHandleGetShortUrl(t *testing.T) {
@@ -79,7 +94,7 @@ func TestHandleGetShortUrl(t *testing.T) {
 	repo := new(RepositoryMock)
 	testRawURL := "http://test.com"
 	url, _ := url.Parse(testRawURL)
-	sh := NewURLShortener(repo)
+	sh := NewURLShortener(repo, BaseURL)
 	repo.On("GetURLBy", 123).Return(url)
 
 	sh.ServeHTTP(rw, req)
