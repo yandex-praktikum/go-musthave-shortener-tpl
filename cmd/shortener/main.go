@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 
@@ -26,7 +27,7 @@ func main() {
 
 func start(s *app.URLShortenerServer) {
 	err := s.ListenAndServe()
-	if err != nil {
+	if err != http.ErrServerClosed {
 		panic(err)
 	}
 }
