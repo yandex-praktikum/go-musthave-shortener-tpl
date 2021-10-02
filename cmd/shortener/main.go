@@ -15,14 +15,18 @@ func main() {
 	server := app.NewServer(conf)
 	log.Println("Starting server...")
 
-	err := server.ListenAndServe()
-	if err != nil {
-		panic(err)
-	}
+	go start(server)
 
 	sigint := make(chan os.Signal, 1)
 	signal.Notify(sigint, os.Interrupt)
 	<-sigint
 	server.Shutdown(context.Background())
 	log.Println("Server stopped.")
+}
+
+func start(s *app.URLShortenerServer) {
+	err := s.ListenAndServe()
+	if err != nil {
+		panic(err)
+	}
 }

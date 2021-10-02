@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -18,10 +19,23 @@ type URLShortener struct {
 	BaseURL url.URL
 }
 
-func NewServer(conf Config) *http.Server {
-	return &http.Server{
-		Addr:    conf.ServerAddress,
-		Handler: NewURLShortener(NewMemRepository(), conf.BaseURL),
+type URLShortenerServer struct {
+	http.Server
+}
+
+func (s *URLShortenerServer) Shutdown(ctx context.Context) error {
+	log.Println("stopping.")
+	return s.Server.Shutdown(ctx)
+}
+
+func NewServer(conf Config) *URLShortenerServer {
+	repo := NewMemRepository()
+
+	return &URLShortenerServer{
+		Server: http.Server{
+			Addr:    conf.ServerAddress,
+			Handler: NewURLShortener(repo, conf.BaseURL),
+		},
 	}
 }
 
