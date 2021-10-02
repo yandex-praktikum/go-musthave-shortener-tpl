@@ -13,7 +13,7 @@ import (
 
 type StorableURL struct {
 	URL string
-	Id  int
+	ID  int
 }
 
 type Repository interface {
@@ -46,7 +46,7 @@ func (r *MemRepository) Restore(fileName string) error {
 	for {
 		storableURL, errDecode := reader.ReadURL()
 		if errDecode != nil {
-			return fmt.Errorf("Cannot decode backed-up URL: %w", errDecode)
+			return fmt.Errorf("cannot decode backed-up URL: %w", errDecode)
 		}
 		if storableURL == nil {
 			break
@@ -54,7 +54,7 @@ func (r *MemRepository) Restore(fileName string) error {
 
 		url, errParse := url.Parse(storableURL.URL)
 		if errParse != nil {
-			return fmt.Errorf("Cannot parse backed-up URL [%s]: %w", storableURL.URL, errParse)
+			return fmt.Errorf("cannot parse backed-up URL [%s]: %w", storableURL.URL, errParse)
 		}
 		r.SaveURL(*url)
 		log.Printf("Url restored [%s]", url)
@@ -72,7 +72,7 @@ func (r *MemRepository) Backup(fileName string) error {
 
 	for id, shortURL := range r.store {
 		errWrite := writer.WriteURL(StorableURL{
-			Id:  id,
+			ID:  id,
 			URL: shortURL.String(),
 		})
 		if errWrite != nil {
@@ -146,7 +146,7 @@ type writer struct {
 func NewWriter(fileName string) (*writer, error) {
 	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_APPEND|os.O_TRUNC|os.O_CREATE, 0777)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot open file: %w", err)
+		return nil, fmt.Errorf("cannot open file: %w", err)
 	}
 
 	bufWriter := bufio.NewWriter(file)
@@ -162,7 +162,7 @@ func NewWriter(fileName string) (*writer, error) {
 func (w *writer) WriteURL(u StorableURL) error {
 	errEncode := w.encoder.Encode(u)
 	if errEncode != nil {
-		return fmt.Errorf("Cannot write to storage: %w", errEncode)
+		return fmt.Errorf("cannot write to storage: %w", errEncode)
 	}
 	return nil
 }
@@ -170,7 +170,7 @@ func (w *writer) WriteURL(u StorableURL) error {
 func (w *writer) Close() error {
 	errFlush := w.bufWriter.Flush()
 	if errFlush != nil {
-		return fmt.Errorf("Cannot write buffered data to file: %w", errFlush)
+		return fmt.Errorf("cannot write buffered data to file: %w", errFlush)
 	}
 	return w.file.Close()
 }
