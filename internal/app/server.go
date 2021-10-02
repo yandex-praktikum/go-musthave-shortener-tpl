@@ -13,7 +13,10 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-const ServiceAddr = "localhost:8080"
+type Config struct {
+	ServerAddress string  `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
+	BaseURL       url.URL `env:"BASE_URL" envDefault:"http://localhost:8080"`
+}
 
 type Repository interface {
 	GetURLBy(id int) *url.URL
@@ -22,20 +25,22 @@ type Repository interface {
 
 type URLShortener struct {
 	*chi.Mux
-	Repo Repository
+	Repo    Repository
+	BaseURL url.URL
 }
 
-func NewServer() *http.Server {
+func NewServer(conf Config) *http.Server {
 	return &http.Server{
-		Addr:    ServiceAddr,
-		Handler: NewURLShortener(NewRepository()),
+		Addr:    conf.ServerAddress,
+		Handler: NewURLShortener(NewRepository(), conf.BaseURL),
 	}
 }
 
-func NewURLShortener(repo Repository) http.Handler {
+func NewURLShortener(repo Repository, baseURL url.URL) http.Handler {
 	shortener := &URLShortener{
-		Mux:  chi.NewMux(),
-		Repo: repo,
+		Mux:     chi.NewMux(),
+		Repo:    repo,
+		BaseURL: baseURL,
 	}
 	shortener.Post("/", shortener.handlePostLongURL)
 	shortener.Post("/api/shorten", shortener.handlePostAPIShorten)
@@ -71,12 +76,12 @@ func (s *URLShortener) handlePostLongURL(w http.ResponseWriter, r *http.Request)
 
 func (s *URLShortener) ShortenURL(longURL url.URL) url.URL {
 	id := s.Repo.SaveURL(longURL)
-	log.Printf("Shortened: %s - %d", longURL.String(), id)
-	rawShortURL := fmt.Sprintf("http://%s/%d", ServiceAddr, id)
-	shortURL, err := url.Parse(rawShortURL)
+	urlPath := fmt.Sprintf("%d", id)
+	shortURL, err := s.BaseURL.Parse(urlPath)
 	if err != nil {
-		log.Panicf("Cannot make URL [%s]", rawShortURL)
+		log.Panicf("Cannot make URL for id [%d]", id)
 	}
+	log.Printf("Shortened: %s - %s", longURL.String(), shortURL)
 	return *shortURL
 }
 
