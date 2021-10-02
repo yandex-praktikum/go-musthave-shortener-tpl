@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -37,6 +38,7 @@ func NewURLShortener(repo Repository) http.Handler {
 		Repo: repo,
 	}
 	shortener.Post("/", shortener.handlePostLongURL)
+	shortener.Post("/api/shorten", shortener.handlePostAPIShorten)
 	shortener.Get("/{id}", shortener.handleGetShortURL)
 
 	return shortener
@@ -58,15 +60,61 @@ func (s *URLShortener) handlePostLongURL(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	id := s.Repo.SaveURL(*longURL)
-	log.Printf("Shortened: %v - %d", longURL, id)
-
-	shortURL := fmt.Sprintf("http://%s/%d", ServiceAddr, id)
+	shortURL := s.ShortenURL(*longURL)
 
 	w.WriteHeader(http.StatusCreated)
-	_, errWrite := w.Write([]byte(shortURL))
+	_, errWrite := fmt.Fprint(w, shortURL.String())
 	if errWrite != nil {
 		log.Printf("Cannot write response: %v", errWrite)
+	}
+}
+
+func (s *URLShortener) ShortenURL(longURL url.URL) url.URL {
+	id := s.Repo.SaveURL(longURL)
+	log.Printf("Shortened: %s - %d", longURL.String(), id)
+	rawShortURL := fmt.Sprintf("http://%s/%d", ServiceAddr, id)
+	shortURL, err := url.Parse(rawShortURL)
+	if err != nil {
+		log.Panicf("Cannot make URL [%s]", rawShortURL)
+	}
+	return *shortURL
+}
+
+type LongURLJson struct {
+	URL string `json:"url"`
+}
+
+type ShortURLJson struct {
+	Result string `json:"result"`
+}
+
+func (s *URLShortener) handlePostAPIShorten(w http.ResponseWriter, r *http.Request) {
+	dec := json.NewDecoder(r.Body)
+	longURLJson := LongURLJson{}
+	errDec := dec.Decode(&longURLJson)
+	if errDec != nil {
+		msg := fmt.Sprintf("Cannot decode request body: %v", errDec)
+		http.Error(w, msg, http.StatusBadRequest)
+		log.Println(msg)
+		return
+	}
+	longURL, errParse := url.Parse(longURLJson.URL)
+	if errParse != nil {
+		log.Printf("Cannot parse URL: %v", errParse)
+		http.Error(w, "Cannot parse URL", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("longURLJson.Url: [%v]", longURL)
+	shortURL := s.ShortenURL(*longURL)
+	shortURLJson := ShortURLJson{Result: shortURL.String()}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	enc := json.NewEncoder(w)
+	errEnc := enc.Encode(shortURLJson)
+	if errEnc != nil {
+		log.Printf("Cannot write response: %v", errEnc)
 	}
 }
 
