@@ -30,6 +30,14 @@ func (r *RepositoryMock) SaveURL(u url.URL) int {
 	return args.Int(0)
 }
 
+func (r *RepositoryMock) Backup(fineName string) error {
+	return fmt.Errorf("Not implemented")
+}
+
+func (r *RepositoryMock) Restore(fileName string) error {
+	return fmt.Errorf("Not implemented")
+}
+
 func TestMain(m *testing.M) {
 	url, errConf := url.Parse("http://localhost:8080")
 	if errConf != nil {
