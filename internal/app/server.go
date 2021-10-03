@@ -1,14 +1,17 @@
 package app
 
 import (
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -61,6 +64,8 @@ func NewURLShortener(repo Repository, baseURL url.URL) http.Handler {
 		Repo:    repo,
 		BaseURL: baseURL,
 	}
+	shortener.Use(gzipDecompressor)
+	shortener.Use(gzipCompressor)
 	shortener.Post("/", shortener.handlePostLongURL)
 	shortener.Post("/api/shorten", shortener.handlePostAPIShorten)
 	shortener.Get("/{id}", shortener.handleGetShortURL)
@@ -160,4 +165,63 @@ func (s *URLShortener) handleGetShortURL(w http.ResponseWriter, r *http.Request)
 
 	w.Header().Add("Location", url.String())
 	w.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+type gzipWriter struct {
+	http.ResponseWriter
+	Writer io.Writer
+}
+
+func (w gzipWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
+}
+
+func gzipCompressor(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
+		if err != nil {
+			log.Println("Cannot create gzip writer", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer gz.Close()
+
+		w.Header().Set("Content-Encoding", "gzip")
+		next.ServeHTTP(gzipWriter{w, gz}, r)
+	})
+}
+
+type gzipReader struct {
+	io.ReadCloser
+	Reader io.Reader
+}
+
+func (r gzipReader) Read(p []byte) (n int, err error) {
+	return r.Reader.Read(p)
+}
+
+func gzipDecompressor(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		gz, err := gzip.NewReader(r.Body)
+		if err != nil {
+			log.Println("Cannot create gzip reader", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer gz.Close()
+
+		r.Body = gzipReader{r.Body, gz}
+
+		next.ServeHTTP(w, r)
+	})
 }
