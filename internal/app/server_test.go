@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -39,9 +40,9 @@ func (r *RepositoryMock) Restore(fileName string) error {
 }
 
 func TestMain(m *testing.M) {
-	url, errConf := url.Parse("http://localhost:8080")
-	if errConf != nil {
-		panic(errConf)
+	url, errUrl := url.Parse("http://localhost:8080")
+	if errUrl != nil {
+		log.Fatalf("Cannot parse base URL: %s", errUrl.Error())
 	}
 
 	BaseURL = *url

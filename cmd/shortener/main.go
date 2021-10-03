@@ -11,7 +11,10 @@ import (
 )
 
 func main() {
-	conf := app.LoadConfig()
+	conf, errConf := app.LoadConfig()
+	if errConf != nil {
+		log.Fatalf("Cannot load config: %s", errConf.Error())
+	}
 
 	server := app.NewServer(conf)
 	log.Println("Starting server...")
@@ -28,6 +31,6 @@ func main() {
 func start(s *app.URLShortenerServer) {
 	err := s.ListenAndServe()
 	if err != http.ErrServerClosed {
-		panic(err)
+		log.Fatalf("Cannot start the server: %v", err.Error())
 	}
 }

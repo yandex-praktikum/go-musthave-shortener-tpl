@@ -31,7 +31,7 @@ type URLShortenerServer struct {
 func (s *URLShortenerServer) ListenAndServe() error {
 	errRestore := s.Repo.Restore(s.StorageFile)
 	if errRestore != nil {
-		panic(errRestore)
+		return fmt.Errorf("cannot restore URLs from storage file: %w", errRestore)
 	}
 	log.Printf("URL repository restored from [%s].", s.StorageFile)
 	return s.Server.ListenAndServe()
@@ -40,7 +40,7 @@ func (s *URLShortenerServer) ListenAndServe() error {
 func (s *URLShortenerServer) Shutdown(ctx context.Context) error {
 	errBackup := s.Repo.Backup(s.StorageFile)
 	if errBackup != nil {
-		panic(errBackup)
+		return fmt.Errorf("cannot backup URLs to storage file: %w", errBackup)
 	}
 	log.Printf("URL repository backed up to [%s].", s.StorageFile)
 	return s.Server.Shutdown(ctx)
@@ -89,7 +89,12 @@ func (s *URLShortener) handlePostLongURL(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	shortURL := s.ShortenURL(*longURL)
+	shortURL, errShorten := s.ShortenURL(*longURL)
+	if errShorten != nil {
+		log.Printf("Cannot shorten url: %s", errShorten.Error())
+		http.Error(w, "Cannot shorten url", http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	_, errWrite := fmt.Fprint(w, shortURL.String())
@@ -98,15 +103,15 @@ func (s *URLShortener) handlePostLongURL(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (s *URLShortener) ShortenURL(longURL url.URL) url.URL {
+func (s *URLShortener) ShortenURL(longURL url.URL) (*url.URL, error) {
 	id := s.Repo.SaveURL(longURL)
 	urlPath := fmt.Sprintf("%d", id)
 	shortURL, err := s.BaseURL.Parse(urlPath)
 	if err != nil {
-		log.Panicf("Cannot make URL for id [%d]", id)
+		return nil, fmt.Errorf("cannot shorten URL for id [%d]", id)
 	}
 	log.Printf("Shortened: %s - %s", longURL.String(), shortURL)
-	return *shortURL
+	return shortURL, nil
 }
 
 type LongURLJson struct {
@@ -135,7 +140,13 @@ func (s *URLShortener) handlePostAPIShorten(w http.ResponseWriter, r *http.Reque
 	}
 
 	log.Printf("longURLJson.Url: [%v]", longURL)
-	shortURL := s.ShortenURL(*longURL)
+	shortURL, errShorten := s.ShortenURL(*longURL)
+	if errShorten != nil {
+		log.Printf("Cannot shorten url: %s", errShorten.Error())
+		http.Error(w, "Cannot shorten url", http.StatusInternalServerError)
+		return
+	}
+
 	shortURLJson := ShortURLJson{Result: shortURL.String()}
 
 	w.Header().Add("Content-Type", "application/json")

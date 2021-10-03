@@ -2,6 +2,7 @@ package app
 
 import (
 	"flag"
+	"fmt"
 	"net/url"
 
 	"github.com/caarlos0/env/v6"
@@ -13,11 +14,11 @@ type Config struct {
 	StorageFile   string  `env:"FILE_STORAGE_PATH" envDefault:"urlStorage.gob"`
 }
 
-func LoadConfig() Config {
+func LoadConfig() (Config, error) {
 	var conf Config
 	errConf := env.Parse(&conf)
 	if errConf != nil {
-		panic(errConf)
+		return conf, fmt.Errorf("cannot parse config from environment: %w", errConf)
 	}
 
 	var baseURLStr string
@@ -29,10 +30,10 @@ func LoadConfig() Config {
 	if baseURLStr > "" {
 		baseURL, errParse := url.Parse(baseURLStr)
 		if errParse != nil {
-			panic(errParse)
+			return conf, fmt.Errorf("cannot parse base URL: %w", errParse)
 		}
 		conf.BaseURL = *baseURL
 	}
 
-	return conf
+	return conf, nil
 }
