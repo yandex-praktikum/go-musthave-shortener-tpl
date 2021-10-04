@@ -29,8 +29,7 @@ type URLShortenerServer struct {
 }
 
 func (s *URLShortenerServer) ListenAndServe() error {
-	errRestore := s.Repo.Restore(s.StorageFile)
-	if errRestore != nil {
+	if errRestore := s.Repo.Restore(s.StorageFile); errRestore != nil {
 		return fmt.Errorf("cannot restore URLs from storage file: %w", errRestore)
 	}
 	log.Printf("URL repository restored from [%s].", s.StorageFile)
@@ -38,8 +37,7 @@ func (s *URLShortenerServer) ListenAndServe() error {
 }
 
 func (s *URLShortenerServer) Shutdown(ctx context.Context) error {
-	errBackup := s.Repo.Backup(s.StorageFile)
-	if errBackup != nil {
+	if errBackup := s.Repo.Backup(s.StorageFile); errBackup != nil {
 		return fmt.Errorf("cannot backup URLs to storage file: %w", errBackup)
 	}
 	log.Printf("URL repository backed up to [%s].", s.StorageFile)
@@ -97,8 +95,7 @@ func (s *URLShortener) handlePostLongURL(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	_, errWrite := fmt.Fprint(w, shortURL.String())
-	if errWrite != nil {
+	if _, errWrite := fmt.Fprint(w, shortURL.String()); errWrite != nil {
 		log.Printf("Cannot write response: %v", errWrite)
 	}
 }
@@ -125,8 +122,7 @@ type ShortURLJson struct {
 func (s *URLShortener) handlePostAPIShorten(w http.ResponseWriter, r *http.Request) {
 	dec := json.NewDecoder(r.Body)
 	longURLJson := LongURLJson{}
-	errDec := dec.Decode(&longURLJson)
-	if errDec != nil {
+	if errDec := dec.Decode(&longURLJson); errDec != nil {
 		msg := fmt.Sprintf("Cannot decode request body: %v", errDec)
 		http.Error(w, msg, http.StatusBadRequest)
 		log.Println(msg)
@@ -152,8 +148,7 @@ func (s *URLShortener) handlePostAPIShorten(w http.ResponseWriter, r *http.Reque
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	enc := json.NewEncoder(w)
-	errEnc := enc.Encode(shortURLJson)
-	if errEnc != nil {
+	if errEnc := enc.Encode(shortURLJson); errEnc != nil {
 		log.Printf("Cannot write response: %v", errEnc)
 	}
 }

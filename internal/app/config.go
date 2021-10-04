@@ -16,8 +16,7 @@ type Config struct {
 
 func LoadConfig() (Config, error) {
 	var conf Config
-	errConf := env.Parse(&conf)
-	if errConf != nil {
+	if errConf := env.Parse(&conf); errConf != nil {
 		return conf, fmt.Errorf("cannot parse config from environment: %w", errConf)
 	}
 

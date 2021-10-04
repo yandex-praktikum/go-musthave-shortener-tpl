@@ -71,11 +71,11 @@ func (r *MemRepository) Backup(fileName string) error {
 	defer writer.Close()
 
 	for id, shortURL := range r.store {
-		errWrite := writer.WriteURL(StorableURL{
+		storableURL := StorableURL{
 			ID:  id,
 			URL: shortURL.String(),
-		})
-		if errWrite != nil {
+		}
+		if errWrite := writer.WriteURL(storableURL); errWrite != nil {
 			return errWrite
 		}
 		log.Printf("Url backed up [%s]", &shortURL)
@@ -160,16 +160,14 @@ func NewWriter(fileName string) (*writer, error) {
 }
 
 func (w *writer) WriteURL(u StorableURL) error {
-	errEncode := w.encoder.Encode(u)
-	if errEncode != nil {
+	if errEncode := w.encoder.Encode(u); errEncode != nil {
 		return fmt.Errorf("cannot write to storage: %w", errEncode)
 	}
 	return nil
 }
 
 func (w *writer) Close() error {
-	errFlush := w.bufWriter.Flush()
-	if errFlush != nil {
+	if errFlush := w.bufWriter.Flush(); errFlush != nil {
 		return fmt.Errorf("cannot write buffered data to file: %w", errFlush)
 	}
 	return w.file.Close()
