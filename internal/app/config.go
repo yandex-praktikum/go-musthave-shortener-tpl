@@ -26,7 +26,7 @@ func LoadConfig() (Config, error) {
 	flag.StringVar(&baseURLStr, "b", conf.BaseURL.String(), "Base URL")
 	flag.Parse()
 
-	if baseURLStr > "" {
+	if baseURLStr != "" {
 		baseURL, errParse := url.Parse(baseURLStr)
 		if errParse != nil {
 			return conf, fmt.Errorf("cannot parse base URL: %w", errParse)
