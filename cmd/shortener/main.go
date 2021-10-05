@@ -24,7 +24,9 @@ func main() {
 	sigint := make(chan os.Signal, 1)
 	signal.Notify(sigint, os.Interrupt)
 	<-sigint
-	server.Shutdown(context.Background())
+	if errShutdown := server.Shutdown(context.Background()); errShutdown != nil {
+		log.Fatalf("Could not gracefully stop the server: %s", errShutdown.Error())
+	}
 	log.Println("Server stopped.")
 }
 

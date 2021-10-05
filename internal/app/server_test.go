@@ -11,33 +11,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/mock"
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage/mocks"
 	"github.com/stretchr/testify/require"
 )
 
 var BaseURL url.URL
-
-type RepositoryMock struct {
-	mock.Mock
-}
-
-func (r *RepositoryMock) GetURLBy(id int) *url.URL {
-	args := r.Called(id)
-	return args.Get(0).(*url.URL)
-}
-
-func (r *RepositoryMock) SaveURL(u url.URL) int {
-	args := r.Called(u)
-	return args.Int(0)
-}
-
-func (r *RepositoryMock) Backup(fineName string) error {
-	return fmt.Errorf("Not implemented")
-}
-
-func (r *RepositoryMock) Restore(fileName string) error {
-	return fmt.Errorf("Not implemented")
-}
 
 func TestMain(m *testing.M) {
 	url, errUrl := url.Parse("http://localhost:8080")
@@ -55,10 +34,12 @@ func TestHandlePostLongURL(t *testing.T) {
 	rw := httptest.NewRecorder()
 	testRawURL := "http://test.com"
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(testRawURL))
-	repo := new(RepositoryMock)
+	repo := new(mocks.StorageMock)
 	url, _ := url.Parse(testRawURL)
+	storableURL := model.NewStorableURL(url)
+	storeURL := model.NewStoreURL(123, url)
 	sh := NewURLShortener(repo, BaseURL)
-	repo.On("SaveURL", *url).Return(123)
+	repo.On("Save", storableURL).Return(storeURL)
 
 	sh.ServeHTTP(rw, req)
 
@@ -80,10 +61,12 @@ func TestHandlePostApiShorten(t *testing.T) {
 		"/api/shorten",
 		bytes.NewBufferString(testLongURLJson),
 	)
-	repo := new(RepositoryMock)
+	repo := new(mocks.StorageMock)
 	url, _ := url.Parse(testRawLongURL)
+	storableURL := model.NewStorableURL(url)
+	storeURL := model.NewStoreURL(123, url)
 	sh := NewURLShortener(repo, BaseURL)
-	repo.On("SaveURL", *url).Return(123)
+	repo.On("Save", storableURL).Return(storeURL)
 
 	sh.ServeHTTP(rw, req)
 
@@ -100,11 +83,12 @@ func TestHandlePostApiShorten(t *testing.T) {
 func TestHandleGetShortUrl(t *testing.T) {
 	rw := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/123", nil)
-	repo := new(RepositoryMock)
+	repo := new(mocks.StorageMock)
 	testRawURL := "http://test.com"
 	url, _ := url.Parse(testRawURL)
+	storeURL := model.NewStoreURL(123, url)
 	sh := NewURLShortener(repo, BaseURL)
-	repo.On("GetURLBy", 123).Return(url)
+	repo.On("GetByID", 123).Return(&storeURL)
 
 	sh.ServeHTTP(rw, req)
 

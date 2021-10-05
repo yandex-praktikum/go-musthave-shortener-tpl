@@ -14,22 +14,26 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage"
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage/backup"
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage/inmem"
 )
 
 type URLShortener struct {
 	*chi.Mux
-	Repo    Repository
+	Repo    storage.Storage
 	BaseURL url.URL
 }
 
 type URLShortenerServer struct {
 	http.Server
-	Repo        Repository
+	Repo        storage.BulkStorage
 	StorageFile string
 }
 
 func (s *URLShortenerServer) ListenAndServe() error {
-	if errRestore := s.Repo.Restore(s.StorageFile); errRestore != nil {
+	if errRestore := backup.Restore(s.StorageFile, s.Repo); errRestore != nil {
 		return fmt.Errorf("cannot restore URLs from storage file: %w", errRestore)
 	}
 	log.Printf("URL repository restored from [%s].", s.StorageFile)
@@ -37,15 +41,18 @@ func (s *URLShortenerServer) ListenAndServe() error {
 }
 
 func (s *URLShortenerServer) Shutdown(ctx context.Context) error {
-	if errBackup := s.Repo.Backup(s.StorageFile); errBackup != nil {
+	if errBackup := backup.Backup(s.StorageFile, s.Repo); errBackup != nil {
 		return fmt.Errorf("cannot backup URLs to storage file: %w", errBackup)
 	}
 	log.Printf("URL repository backed up to [%s].", s.StorageFile)
-	return s.Server.Shutdown(ctx)
+	if errShutdown := s.Server.Shutdown(ctx); errShutdown != nil {
+		return fmt.Errorf("cannot shutdown the server: %w", errShutdown)
+	}
+	return nil
 }
 
 func NewServer(conf Config) *URLShortenerServer {
-	repo := NewMemRepository()
+	repo := inmem.New()
 	return &URLShortenerServer{
 		Server: http.Server{
 			Addr:    conf.ServerAddress,
@@ -56,7 +63,7 @@ func NewServer(conf Config) *URLShortenerServer {
 	}
 }
 
-func NewURLShortener(repo Repository, baseURL url.URL) http.Handler {
+func NewURLShortener(repo storage.Storage, baseURL url.URL) http.Handler {
 	shortener := &URLShortener{
 		Mux:     chi.NewMux(),
 		Repo:    repo,
@@ -87,7 +94,8 @@ func (s *URLShortener) handlePostLongURL(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	shortURL, errShorten := s.ShortenURL(*longURL)
+	newStorableURL := model.NewStorableURL(longURL)
+	shortURL, errShorten := s.ShortenURL(newStorableURL)
 	if errShorten != nil {
 		log.Printf("Cannot shorten url: %s", errShorten.Error())
 		http.Error(w, "Cannot shorten url", http.StatusInternalServerError)
@@ -100,14 +108,14 @@ func (s *URLShortener) handlePostLongURL(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (s *URLShortener) ShortenURL(longURL url.URL) (*url.URL, error) {
-	id := s.Repo.SaveURL(longURL)
-	urlPath := fmt.Sprintf("%d", id)
+func (s *URLShortener) ShortenURL(newURL model.StorableURL) (*url.URL, error) {
+	url := s.Repo.Save(newURL)
+	urlPath := fmt.Sprintf("%d", url.ID)
 	shortURL, err := s.BaseURL.Parse(urlPath)
 	if err != nil {
-		return nil, fmt.Errorf("cannot shorten URL for id [%d]", id)
+		return nil, fmt.Errorf("cannot shorten URL for id [%d]", url.ID)
 	}
-	log.Printf("Shortened: %s - %s", longURL.String(), shortURL)
+	log.Printf("Shortened: %s - %s", url, shortURL)
 	return shortURL, nil
 }
 
@@ -136,7 +144,9 @@ func (s *URLShortener) handlePostAPIShorten(w http.ResponseWriter, r *http.Reque
 	}
 
 	log.Printf("longURLJson.Url: [%v]", longURL)
-	shortURL, errShorten := s.ShortenURL(*longURL)
+
+	storableURL := model.NewStorableURL(longURL)
+	shortURL, errShorten := s.ShortenURL(storableURL)
 	if errShorten != nil {
 		log.Printf("Cannot shorten url: %s", errShorten.Error())
 		http.Error(w, "Cannot shorten url", http.StatusInternalServerError)
@@ -162,14 +172,14 @@ func (s *URLShortener) handleGetShortURL(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	url := s.Repo.GetURLBy(id)
+	url := s.Repo.GetByID(id)
 	if url == nil {
 		http.NotFound(w, r)
 		return
 	}
 	log.Printf("Found: %d - %v", id, url)
 
-	w.Header().Add("Location", url.String())
+	w.Header().Add("Location", url.LongURL.String())
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
