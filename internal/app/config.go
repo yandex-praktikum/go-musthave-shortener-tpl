@@ -29,7 +29,7 @@ func LoadConfig() (Config, error) {
 	if baseURLStr != "" {
 		baseURL, errParse := url.Parse(baseURLStr)
 		if errParse != nil {
-			return conf, fmt.Errorf("cannot parse base URL: %w", errParse)
+			return conf, fmt.Errorf("cannot parse base URL [%s]: %w", baseURLStr, errParse)
 		}
 		conf.BaseURL = *baseURL
 	}
