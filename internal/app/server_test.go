@@ -19,9 +19,9 @@ import (
 var BaseURL url.URL
 
 func TestMain(m *testing.M) {
-	url, errUrl := url.Parse("http://localhost:8080")
-	if errUrl != nil {
-		log.Fatalf("Cannot parse base URL: %s", errUrl.Error())
+	url, errURL := url.Parse("http://localhost:8080")
+	if errURL != nil {
+		log.Fatalf("Cannot parse base URL: %s", errURL.Error())
 	}
 
 	BaseURL = *url
