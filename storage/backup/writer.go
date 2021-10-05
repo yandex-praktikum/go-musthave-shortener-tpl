@@ -32,7 +32,7 @@ func newWriter(fileName string) (*writer, error) {
 }
 
 func (w *writer) writeURL(u model.StoreURL) error {
-	gobU := NewGobUrl(u)
+	gobU := NewGobURL(u)
 	if errEncode := w.encoder.Encode(gobU); errEncode != nil {
 		return fmt.Errorf("cannot write to storage: %w", errEncode)
 	}
