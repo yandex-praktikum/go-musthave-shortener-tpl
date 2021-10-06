@@ -13,7 +13,7 @@ import (
 
 func (h *URLShortenerHandler) handlePostAPIShorten(w http.ResponseWriter, r *http.Request) {
 	dec := json.NewDecoder(r.Body)
-	longURLJson := apiModel.LongURLJson{}
+	longURLJson := apimodel.LongURLJson{}
 	if errDec := dec.Decode(&longURLJson); errDec != nil {
 		msg := fmt.Sprintf("Cannot decode request body: %v", errDec)
 		http.Error(w, msg, http.StatusBadRequest)
@@ -37,7 +37,7 @@ func (h *URLShortenerHandler) handlePostAPIShorten(w http.ResponseWriter, r *htt
 		return
 	}
 
-	shortURLJson := apiModel.ShortURLJson{Result: shortURL.String()}
+	shortURLJson := apimodel.ShortURLJson{Result: shortURL.String()}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

@@ -1,4 +1,4 @@
-package apiModel
+package apimodel
 
 type LongURLJson struct {
 	URL string `json:"url"`
