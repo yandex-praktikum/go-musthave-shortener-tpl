@@ -16,7 +16,7 @@ type reader struct {
 }
 
 func newReader(fileName string) (*reader, error) {
-	file, err := os.OpenFile(fileName, os.O_RDONLY|os.O_CREATE, 0777)
+	file, err := os.OpenFile(fileName, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func newReader(fileName string) (*reader, error) {
 }
 
 func (r *reader) readURL() (*model.StoreURL, error) {
-	u := &GobURL{}
+	u := &gobURL{}
 	errDecode := r.decoder.Decode(u)
 	if errDecode == io.EOF {
 		return nil, nil

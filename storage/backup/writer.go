@@ -16,7 +16,7 @@ type writer struct {
 }
 
 func newWriter(fileName string) (*writer, error) {
-	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_APPEND|os.O_TRUNC|os.O_CREATE, 0777)
+	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_APPEND|os.O_TRUNC|os.O_CREATE, 0666)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open file: %w", err)
 	}
@@ -32,7 +32,7 @@ func newWriter(fileName string) (*writer, error) {
 }
 
 func (w *writer) writeURL(u model.StoreURL) error {
-	gobU := NewGobURL(u)
+	gobU := newGobURL(u)
 	if errEncode := w.encoder.Encode(gobU); errEncode != nil {
 		return fmt.Errorf("cannot write to storage: %w", errEncode)
 	}

@@ -7,19 +7,19 @@ import (
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
 )
 
-type GobURL struct {
+type gobURL struct {
 	ID      int
 	LongURL string
 }
 
-func NewGobURL(u model.StoreURL) GobURL {
-	return GobURL{
+func newGobURL(u model.StoreURL) gobURL {
+	return gobURL{
 		ID:      u.ID,
 		LongURL: u.LongURL.String(),
 	}
 }
 
-func (u *GobURL) ToStoreURL() (*model.StoreURL, error) {
+func (u *gobURL) ToStoreURL() (*model.StoreURL, error) {
 	url, errParse := url.Parse(u.LongURL)
 	if errParse != nil {
 		return nil, fmt.Errorf("cannot restore url [%s] from backup: %w", u.LongURL, errParse)
