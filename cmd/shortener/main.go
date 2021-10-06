@@ -17,7 +17,7 @@ func main() {
 		log.Fatalf("Cannot load config: %s", errConf.Error())
 	}
 
-	server := api.NewServer(conf)
+	server := api.New(conf)
 	log.Println("Starting server...")
 
 	go start(server)
