@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/api/handler"
-	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/internal/app"
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/config"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage/backup"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage/inmem"
@@ -19,7 +19,7 @@ type URLShortenerServer struct {
 	StorageFile string
 }
 
-func New(conf app.Config) *URLShortenerServer {
+func New(conf config.Config) *URLShortenerServer {
 	storage := inmem.New()
 	server := URLShortenerServer{
 		Server: http.Server{

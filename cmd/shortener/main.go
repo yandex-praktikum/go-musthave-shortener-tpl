@@ -8,16 +8,16 @@ import (
 	"os/signal"
 
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/api"
-	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/internal/app"
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/config"
 )
 
 func main() {
-	conf, errConf := app.LoadConfig()
+	conf, errConf := config.Load()
 	if errConf != nil {
 		log.Fatalf("Cannot load config: %s", errConf.Error())
 	}
 
-	server := api.New(conf)
+	server := api.New(*conf)
 	log.Println("Starting server...")
 
 	go start(server)
