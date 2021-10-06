@@ -1,4 +1,4 @@
-package service
+package v1
 
 import (
 	"fmt"
@@ -21,6 +21,7 @@ func New(s storage.Storage, u url.URL) *Service {
 func (s *Service) ShortenURL(newURL model.StorableURL) (*url.URL, error) {
 	url := s.Storage.Save(newURL)
 	urlPath := fmt.Sprintf("%d", url.ID)
+
 	shortURL, err := s.BaseURL.Parse(urlPath)
 	if err != nil {
 		return nil, fmt.Errorf("cannot shorten URL for id [%d]", url.ID)
