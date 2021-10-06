@@ -40,6 +40,7 @@ func (r *reader) readURL() (*model.StoreURL, error) {
 	if errParse != nil {
 		return nil, fmt.Errorf("cannot read StoreURL: %w", errParse)
 	}
+
 	return storeURL, nil
 }
 

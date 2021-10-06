@@ -26,5 +26,6 @@ func (s *Service) ShortenURL(newURL model.StorableURL) (*url.URL, error) {
 		return nil, fmt.Errorf("cannot shorten URL for id [%d]", url.ID)
 	}
 	log.Printf("Shortened: %s - %s", url, shortURL)
+
 	return shortURL, nil
 }

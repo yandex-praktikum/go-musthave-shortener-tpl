@@ -25,5 +25,6 @@ func (u *gobURL) ToStoreURL() (*model.StoreURL, error) {
 		return nil, fmt.Errorf("cannot restore url [%s] from backup: %w", u.LongURL, errParse)
 	}
 	storeURL := model.NewStoreURL(u.ID, *url)
+
 	return &storeURL, nil
 }

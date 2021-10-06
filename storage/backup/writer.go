@@ -36,6 +36,7 @@ func (w *writer) writeURL(u model.StoreURL) error {
 	if errEncode := w.encoder.Encode(gobU); errEncode != nil {
 		return fmt.Errorf("cannot write to storage: %w", errEncode)
 	}
+
 	return nil
 }
 
@@ -43,5 +44,6 @@ func (w *writer) close() error {
 	if errFlush := w.bufWriter.Flush(); errFlush != nil {
 		return fmt.Errorf("cannot write buffered data to file: %w", errFlush)
 	}
+
 	return w.file.Close()
 }

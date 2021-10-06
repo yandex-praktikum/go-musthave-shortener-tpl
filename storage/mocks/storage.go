@@ -11,10 +11,12 @@ type StorageMock struct {
 
 func (m *StorageMock) GetByID(id int) *model.StoreURL {
 	args := m.Called(id)
+
 	return args.Get(0).(*model.StoreURL)
 }
 
 func (m *StorageMock) Save(u model.StorableURL) model.StoreURL {
 	args := m.Called(u)
+
 	return args.Get(0).(model.StoreURL)
 }

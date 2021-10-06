@@ -32,6 +32,7 @@ func (s *URLShortenerServer) ListenAndServe() error {
 		return fmt.Errorf("cannot restore URLs from storage file: %w", errRestore)
 	}
 	log.Printf("URL storage restored from [%s].", s.StorageFile)
+
 	return s.Server.ListenAndServe()
 }
 
@@ -43,12 +44,13 @@ func (s *URLShortenerServer) Shutdown(ctx context.Context) error {
 	if errShutdown := s.Server.Shutdown(ctx); errShutdown != nil {
 		return fmt.Errorf("cannot shutdown the server: %w", errShutdown)
 	}
+
 	return nil
 }
 
 func NewServer(conf app.Config) *URLShortenerServer {
 	storage := inmem.New()
-	return &URLShortenerServer{
+	server := URLShortenerServer{
 		Server: http.Server{
 			Addr:    conf.ServerAddress,
 			Handler: handler.New(storage, conf.BaseURL),
@@ -56,4 +58,6 @@ func NewServer(conf app.Config) *URLShortenerServer {
 		Storage:     storage,
 		StorageFile: conf.StorageFile,
 	}
+
+	return &server
 }

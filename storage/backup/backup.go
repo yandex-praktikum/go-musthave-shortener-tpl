@@ -19,5 +19,6 @@ func Backup(fileName string, s storage.BulkStorage) error {
 		}
 		log.Printf("Url backed up [%s]", url)
 	}
+
 	return nil
 }
