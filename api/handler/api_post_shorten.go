@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/api/api_model"
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/api/apiModel"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
 )
 
 func (h *URLShortenerHandler) handlePostAPIShorten(w http.ResponseWriter, r *http.Request) {
 	dec := json.NewDecoder(r.Body)
-	longURLJson := api_model.LongURLJson{}
+	longURLJson := apiModel.LongURLJson{}
 	if errDec := dec.Decode(&longURLJson); errDec != nil {
 		msg := fmt.Sprintf("Cannot decode request body: %v", errDec)
 		http.Error(w, msg, http.StatusBadRequest)
@@ -37,7 +37,7 @@ func (h *URLShortenerHandler) handlePostAPIShorten(w http.ResponseWriter, r *htt
 		return
 	}
 
-	shortURLJson := api_model.ShortURLJson{Result: shortURL.String()}
+	shortURLJson := apiModel.ShortURLJson{Result: shortURL.String()}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
