@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/api"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/internal/app"
 )
 
@@ -16,7 +17,7 @@ func main() {
 		log.Fatalf("Cannot load config: %s", errConf.Error())
 	}
 
-	server := app.NewServer(conf)
+	server := api.NewServer(conf)
 	log.Println("Starting server...")
 
 	go start(server)
@@ -30,7 +31,7 @@ func main() {
 	log.Println("Server stopped.")
 }
 
-func start(s *app.URLShortenerServer) {
+func start(s *api.URLShortenerServer) {
 	err := s.ListenAndServe()
 	if err != http.ErrServerClosed {
 		log.Fatalf("Cannot start the server: %v", err.Error())

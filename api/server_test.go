@@ -1,4 +1,4 @@
-package app
+package api
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/api/handler"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage/mocks"
 	"github.com/stretchr/testify/require"
@@ -34,12 +35,12 @@ func TestHandlePostLongURL(t *testing.T) {
 	rw := httptest.NewRecorder()
 	testRawURL := "http://test.com"
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(testRawURL))
-	repo := new(mocks.StorageMock)
+	storage := new(mocks.StorageMock)
 	url, _ := url.Parse(testRawURL)
 	storableURL := model.NewStorableURL(url)
 	storeURL := model.NewStoreURL(123, url)
-	sh := NewURLShortener(repo, BaseURL)
-	repo.On("Save", storableURL).Return(storeURL)
+	sh := handler.New(storage, BaseURL)
+	storage.On("Save", storableURL).Return(storeURL)
 
 	sh.ServeHTTP(rw, req)
 
@@ -61,12 +62,12 @@ func TestHandlePostApiShorten(t *testing.T) {
 		"/api/shorten",
 		bytes.NewBufferString(testLongURLJson),
 	)
-	repo := new(mocks.StorageMock)
+	storage := new(mocks.StorageMock)
 	url, _ := url.Parse(testRawLongURL)
 	storableURL := model.NewStorableURL(url)
 	storeURL := model.NewStoreURL(123, url)
-	sh := NewURLShortener(repo, BaseURL)
-	repo.On("Save", storableURL).Return(storeURL)
+	sh := handler.New(storage, BaseURL)
+	storage.On("Save", storableURL).Return(storeURL)
 
 	sh.ServeHTTP(rw, req)
 
@@ -83,12 +84,12 @@ func TestHandlePostApiShorten(t *testing.T) {
 func TestHandleGetShortUrl(t *testing.T) {
 	rw := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/123", nil)
-	repo := new(mocks.StorageMock)
+	storage := new(mocks.StorageMock)
 	testRawURL := "http://test.com"
 	url, _ := url.Parse(testRawURL)
 	storeURL := model.NewStoreURL(123, url)
-	sh := NewURLShortener(repo, BaseURL)
-	repo.On("GetByID", 123).Return(&storeURL)
+	sh := handler.New(storage, BaseURL)
+	storage.On("GetByID", 123).Return(&storeURL)
 
 	sh.ServeHTTP(rw, req)
 
