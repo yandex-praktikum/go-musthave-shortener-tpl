@@ -26,7 +26,7 @@ func (h *URLShortenerHandler) handlePostLongURL(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	newStorableURL := model.NewStorableURL(longURL)
+	newStorableURL := model.NewStorableURL(*longURL)
 	shortURL, errShorten := h.Service.ShortenURL(newStorableURL)
 	if errShorten != nil {
 		log.Printf("Cannot shorten url: %s", errShorten.Error())

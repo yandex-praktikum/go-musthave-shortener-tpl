@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"testing"
 
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/api/handler"
@@ -17,32 +16,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var BaseURL url.URL
-
-func TestMain(m *testing.M) {
-	url, errURL := url.Parse("http://localhost:8080")
-	if errURL != nil {
-		log.Fatalf("Cannot parse base URL: %s", errURL.Error())
-	}
-
-	BaseURL = *url
-
-	code := m.Run()
-	os.Exit(code)
-}
+var baseURL = newURL("http://localhost:8080")
+var longURL = newURL("http://test.com")
 
 func TestHandlePostLongURL(t *testing.T) {
 	rw := httptest.NewRecorder()
-	testRawURL := "http://test.com"
-	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(testRawURL))
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(longURL.String()))
 	storage := new(mocks.StorageMock)
-	url, _ := url.Parse(testRawURL)
-	storableURL := model.NewStorableURL(url)
-	storeURL := model.NewStoreURL(123, url)
-	sh := handler.New(storage, BaseURL)
+	storableURL := model.NewStorableURL(longURL)
+	storeURL := model.NewStoreURL(123, longURL)
+	h := handler.New(storage, baseURL)
 	storage.On("Save", storableURL).Return(storeURL)
 
-	sh.ServeHTTP(rw, req)
+	h.ServeHTTP(rw, req)
 
 	res := rw.Result()
 	defer res.Body.Close()
@@ -55,21 +41,19 @@ func TestHandlePostLongURL(t *testing.T) {
 
 func TestHandlePostApiShorten(t *testing.T) {
 	rw := httptest.NewRecorder()
-	testRawLongURL := "http://test.com"
-	testLongURLJson := fmt.Sprintf(`{"url": "%s"}`, testRawLongURL)
+	testLongURLJson := fmt.Sprintf(`{"url": "%s"}`, &longURL)
 	req := httptest.NewRequest(
 		http.MethodPost,
 		"/api/shorten",
 		bytes.NewBufferString(testLongURLJson),
 	)
 	storage := new(mocks.StorageMock)
-	url, _ := url.Parse(testRawLongURL)
-	storableURL := model.NewStorableURL(url)
-	storeURL := model.NewStoreURL(123, url)
-	sh := handler.New(storage, BaseURL)
+	storableURL := model.NewStorableURL(longURL)
+	storeURL := model.NewStoreURL(123, longURL)
+	h := handler.New(storage, baseURL)
 	storage.On("Save", storableURL).Return(storeURL)
 
-	sh.ServeHTTP(rw, req)
+	h.ServeHTTP(rw, req)
 
 	res := rw.Result()
 	defer res.Body.Close()
@@ -85,16 +69,22 @@ func TestHandleGetShortUrl(t *testing.T) {
 	rw := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/123", nil)
 	storage := new(mocks.StorageMock)
-	testRawURL := "http://test.com"
-	url, _ := url.Parse(testRawURL)
-	storeURL := model.NewStoreURL(123, url)
-	sh := handler.New(storage, BaseURL)
+	storeURL := model.NewStoreURL(123, longURL)
+	h := handler.New(storage, baseURL)
 	storage.On("GetByID", 123).Return(&storeURL)
 
-	sh.ServeHTTP(rw, req)
+	h.ServeHTTP(rw, req)
 
 	res := rw.Result()
 	defer res.Body.Close()
 	require.Equal(t, http.StatusTemporaryRedirect, res.StatusCode, "status code")
-	require.Equal(t, testRawURL, res.Header.Get("Location"), "location")
+	require.Equal(t, longURL.String(), res.Header.Get("Location"), "location")
+}
+
+func newURL(urlStr string) url.URL {
+	u, errParse := url.Parse(urlStr)
+	if errParse != nil {
+		log.Fatalf("Cannot parse url [%s]: %s", urlStr, errParse.Error())
+	}
+	return *u
 }

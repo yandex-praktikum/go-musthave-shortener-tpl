@@ -9,8 +9,8 @@ type StorableURL struct {
 	LongURL url.URL
 }
 
-func NewStorableURL(u *url.URL) StorableURL {
-	return StorableURL{*u}
+func NewStorableURL(u url.URL) StorableURL {
+	return StorableURL{u}
 }
 
 type StoreURL struct {
@@ -18,8 +18,8 @@ type StoreURL struct {
 	LongURL url.URL
 }
 
-func NewStoreURL(id int, u *url.URL) StoreURL {
-	return StoreURL{id, *u}
+func NewStoreURL(id int, u url.URL) StoreURL {
+	return StoreURL{id, u}
 }
 
 func (u StoreURL) String() string {
