@@ -7,10 +7,10 @@ import "github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
 // of a single request.
 type Storage interface {
 	// GetByID looks-up for a previously shortened URL.
-	GetByID(id int) *model.StoreURL
+	GetByID(id int) *model.ShortenedURL
 
 	// Save persists a shortened URL. It is responsible for generating ID.
-	Save(model.StorableURL) model.StoreURL
+	Save(model.URLToShorten) model.ShortenedURL
 }
 
 // BulkStorage is used to backup and restore the server state
@@ -20,10 +20,10 @@ type BulkStorage interface {
 	Storage
 
 	// GetAll returns all shortened URLs.
-	GetAll() []model.StoreURL
+	GetAll() []model.ShortenedURL
 
 	// Load persists a shortened URL. It is different from Storage.Save
 	// in that is does not generate an ID, but takes whatever comes
 	// with the URL.
-	Load(u model.StoreURL)
+	Load(u model.ShortenedURL)
 }

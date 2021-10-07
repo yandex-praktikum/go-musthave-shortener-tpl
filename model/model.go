@@ -5,23 +5,23 @@ import (
 	"net/url"
 )
 
-type StorableURL struct {
+type URLToShorten struct {
 	LongURL url.URL
 }
 
-func NewStorableURL(u url.URL) StorableURL {
-	return StorableURL{u}
+func NewURLToShorten(u url.URL) URLToShorten {
+	return URLToShorten{u}
 }
 
-type StoreURL struct {
+type ShortenedURL struct {
 	ID      int
 	LongURL url.URL
 }
 
-func NewStoreURL(id int, u url.URL) StoreURL {
-	return StoreURL{id, u}
+func NewShortenedURL(id int, u url.URL) ShortenedURL {
+	return ShortenedURL{id, u}
 }
 
-func (u StoreURL) String() string {
+func (u ShortenedURL) String() string {
 	return fmt.Sprintf("StoreURL{%d - %s}", u.ID, u.LongURL.String())
 }

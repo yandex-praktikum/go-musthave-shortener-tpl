@@ -18,7 +18,7 @@ func New(s storage.Storage, u url.URL) *Service {
 	return &Service{s, u}
 }
 
-func (s *Service) ShortenURL(newURL model.StorableURL) (*url.URL, error) {
+func (s *Service) ShortenURL(newURL model.URLToShorten) (*url.URL, error) {
 	url := s.Storage.Save(newURL)
 	urlPath := fmt.Sprintf("%d", url.ID)
 

@@ -7,5 +7,5 @@ import (
 )
 
 type URLShortener interface {
-	ShortenURL(newURL model.StorableURL) (*url.URL, error)
+	ShortenURL(newURL model.URLToShorten) (*url.URL, error)
 }

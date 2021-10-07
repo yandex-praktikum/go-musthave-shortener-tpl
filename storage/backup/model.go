@@ -12,19 +12,19 @@ type gobURL struct {
 	LongURL string
 }
 
-func newGobURL(u model.StoreURL) gobURL {
+func newGobURL(u model.ShortenedURL) gobURL {
 	return gobURL{
 		ID:      u.ID,
 		LongURL: u.LongURL.String(),
 	}
 }
 
-func (u *gobURL) ToStoreURL() (*model.StoreURL, error) {
+func (u *gobURL) ToStoreURL() (*model.ShortenedURL, error) {
 	url, errParse := url.Parse(u.LongURL)
 	if errParse != nil {
 		return nil, fmt.Errorf("cannot restore url [%s] from backup: %w", u.LongURL, errParse)
 	}
-	storeURL := model.NewStoreURL(u.ID, *url)
+	storeURL := model.NewShortenedURL(u.ID, *url)
 
 	return &storeURL, nil
 }

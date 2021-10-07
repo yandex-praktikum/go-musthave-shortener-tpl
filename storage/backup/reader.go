@@ -27,7 +27,7 @@ func newReader(fileName string) (*reader, error) {
 	}, nil
 }
 
-func (r *reader) readURL() (*model.StoreURL, error) {
+func (r *reader) readURL() (*model.ShortenedURL, error) {
 	u := &gobURL{}
 	errDecode := r.decoder.Decode(u)
 	if errDecode == io.EOF {

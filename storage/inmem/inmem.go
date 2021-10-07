@@ -9,17 +9,17 @@ import (
 type InMemStorage struct {
 	sync.RWMutex
 
-	store []model.StoreURL
+	store []model.ShortenedURL
 }
 
 func New() *InMemStorage {
 	return &InMemStorage{
 		RWMutex: sync.RWMutex{},
-		store:   make([]model.StoreURL, 0),
+		store:   make([]model.ShortenedURL, 0),
 	}
 }
 
-func (s *InMemStorage) GetByID(id int) *model.StoreURL {
+func (s *InMemStorage) GetByID(id int) *model.ShortenedURL {
 	s.RWMutex.Lock()
 	defer s.RWMutex.Unlock()
 
@@ -32,12 +32,12 @@ func (s *InMemStorage) GetByID(id int) *model.StoreURL {
 	return nil
 }
 
-func (s *InMemStorage) Save(u model.StorableURL) model.StoreURL {
+func (s *InMemStorage) Save(u model.URLToShorten) model.ShortenedURL {
 	s.RWMutex.Lock()
 	defer s.RWMutex.Unlock()
 
 	id := len(s.store)
-	storedURL := model.StoreURL{
+	storedURL := model.ShortenedURL{
 		ID:      id,
 		LongURL: u.LongURL,
 	}
@@ -46,14 +46,14 @@ func (s *InMemStorage) Save(u model.StorableURL) model.StoreURL {
 	return storedURL
 }
 
-func (s *InMemStorage) GetAll() []model.StoreURL {
+func (s *InMemStorage) GetAll() []model.ShortenedURL {
 	s.RWMutex.Lock()
 	defer s.RWMutex.Unlock()
 
 	return s.store
 }
 
-func (s *InMemStorage) Load(u model.StoreURL) {
+func (s *InMemStorage) Load(u model.ShortenedURL) {
 	s.RWMutex.Lock()
 	defer s.RWMutex.Unlock()
 

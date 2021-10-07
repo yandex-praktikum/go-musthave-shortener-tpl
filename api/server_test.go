@@ -23,8 +23,8 @@ func TestHandlePostLongURL(t *testing.T) {
 	rw := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(longURL.String()))
 	storage := new(mocks.StorageMock)
-	storableURL := model.NewStorableURL(longURL)
-	storeURL := model.NewStoreURL(123, longURL)
+	storableURL := model.NewURLToShorten(longURL)
+	storeURL := model.NewShortenedURL(123, longURL)
 	h := handler.New(storage, baseURL)
 	storage.On("Save", storableURL).Return(storeURL)
 
@@ -48,8 +48,8 @@ func TestHandlePostApiShorten(t *testing.T) {
 		bytes.NewBufferString(testLongURLJson),
 	)
 	storage := new(mocks.StorageMock)
-	storableURL := model.NewStorableURL(longURL)
-	storeURL := model.NewStoreURL(123, longURL)
+	storableURL := model.NewURLToShorten(longURL)
+	storeURL := model.NewShortenedURL(123, longURL)
 	h := handler.New(storage, baseURL)
 	storage.On("Save", storableURL).Return(storeURL)
 
@@ -69,7 +69,7 @@ func TestHandleGetShortUrl(t *testing.T) {
 	rw := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/123", nil)
 	storage := new(mocks.StorageMock)
-	storeURL := model.NewStoreURL(123, longURL)
+	storeURL := model.NewShortenedURL(123, longURL)
 	h := handler.New(storage, baseURL)
 	storage.On("GetByID", 123).Return(&storeURL)
 

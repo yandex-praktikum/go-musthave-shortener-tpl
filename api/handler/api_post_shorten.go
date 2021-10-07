@@ -29,7 +29,7 @@ func (h *URLShortenerHandler) handlePostAPIShorten(w http.ResponseWriter, r *htt
 
 	log.Printf("longURLJson.Url: [%v]", longURL)
 
-	storableURL := model.NewStorableURL(*longURL)
+	storableURL := model.NewURLToShorten(*longURL)
 	shortURL, errShorten := h.Service.ShortenURL(storableURL)
 	if errShorten != nil {
 		log.Printf("Cannot shorten url: %s", errShorten.Error())
