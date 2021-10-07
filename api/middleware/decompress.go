@@ -17,6 +17,7 @@ func (r gzipReader) Read(p []byte) (n int, err error) {
 	return r.reader.Read(p)
 }
 
+// GzipDecompressor middleware gzip-decodes encoded HTTP requests
 func GzipDecompressor(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {

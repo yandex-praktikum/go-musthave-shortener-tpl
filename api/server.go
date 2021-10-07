@@ -19,6 +19,7 @@ type URLShortenerServer struct {
 	StorageFile string
 }
 
+// New makes an instance of HTTP server that is ready to run
 func New(conf config.Config) *URLShortenerServer {
 	storage := inmem.New()
 	server := URLShortenerServer{
@@ -33,6 +34,8 @@ func New(conf config.Config) *URLShortenerServer {
 	return &server
 }
 
+// ListenAndServe restores the server state from the backup file
+// and starts the HTTP server
 func (s *URLShortenerServer) ListenAndServe() error {
 	if errRestore := backup.Restore(s.StorageFile, s.Storage); errRestore != nil {
 		return fmt.Errorf("cannot restore URLs from storage file: %w", errRestore)
@@ -42,6 +45,8 @@ func (s *URLShortenerServer) ListenAndServe() error {
 	return s.Server.ListenAndServe()
 }
 
+// Shutdown backs-up the server state into the backup file
+// and stops the HTTP server gracefully
 func (s *URLShortenerServer) Shutdown(ctx context.Context) error {
 	if errBackup := backup.Backup(s.StorageFile, s.Storage); errBackup != nil {
 		return fmt.Errorf("cannot backup URLs to storage file: %w", errBackup)

@@ -7,6 +7,7 @@ import (
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage"
 )
 
+// Restore loads all the backed-up shortened URLs into BulkStorage
 func Restore(fileName string, s storage.BulkStorage) error {
 	reader, errOpen := newReader(fileName)
 	if errOpen != nil {
