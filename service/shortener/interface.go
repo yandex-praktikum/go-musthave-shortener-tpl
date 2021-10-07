@@ -7,5 +7,9 @@ import (
 )
 
 type URLShortener interface {
-	ShortenURL(newURL model.URLToShorten) (*url.URL, error)
+	// ShortenURL does all the necessary logic and stores produced short URL
+	ShortenURL(u model.URLToShorten) (*model.ShortenedURL, error)
+
+	// AbsoluteURL resolves a short URL with regards to base URL
+	AbsoluteURL(u model.ShortenedURL) (*url.URL, error)
 }

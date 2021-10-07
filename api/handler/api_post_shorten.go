@@ -29,15 +29,20 @@ func (h *URLShortenerHandler) handlePostAPIShorten(w http.ResponseWriter, r *htt
 
 	log.Printf("longURLJson.Url: [%v]", longURL)
 
-	storableURL := model.NewURLToShorten(*longURL)
-	shortURL, errShorten := h.Service.ShortenURL(storableURL)
+	u := model.NewURLToShorten(*longURL)
+	shortenedURL, errShorten := h.Service.ShortenURL(u)
 	if errShorten != nil {
 		log.Printf("Cannot shorten url: %s", errShorten.Error())
 		http.Error(w, "Cannot shorten url", http.StatusInternalServerError)
 		return
 	}
 
-	shortURLJson := apimodel.ShortURLJson{Result: shortURL.String()}
+	absoluteURL, errAbsolute := h.Service.AbsoluteURL(*shortenedURL)
+	if errAbsolute != nil {
+		log.Printf("Cannot resolve absolute URL: %s", errAbsolute)
+		http.Error(w, "Cannot resolve absolute URL", http.StatusInternalServerError)
+	}
+	shortURLJson := apimodel.ShortURLJson{Result: absoluteURL.String()}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
