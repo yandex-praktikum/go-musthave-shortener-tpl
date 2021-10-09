@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/api/middleware"
+	authV1 "github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/auth/v1"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/shortener"
 	shortenerV1 "github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/shortener/v1"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage"
@@ -24,6 +25,9 @@ func New(s storage.Storage, baseURL url.URL) *URLShortenerHandler {
 		BaseURL: baseURL,
 		Service: shortenerV1.New(s, baseURL),
 	}
+	idService := authV1.New()
+	auth := middleware.Authenticator{IDService: idService}
+	h.Use(auth.Authenticate)
 	h.Use(middleware.GzipDecompressor)
 	h.Use(middleware.GzipCompressor)
 	h.Post("/", h.handlePostLongURL)
