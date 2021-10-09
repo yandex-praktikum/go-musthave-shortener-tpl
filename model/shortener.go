@@ -36,5 +36,5 @@ func NewShortenedURL(userID int, id int, u url.URL) ShortenedURL {
 // String provides a text representation of a shortened URL;
 // useful for logging
 func (u ShortenedURL) String() string {
-	return fmt.Sprintf("StoreURL{%d - %s}", u.ID, u.LongURL.String())
+	return fmt.Sprintf("StoreURL{%d - %d - %s}", u.UserID, u.ID, u.LongURL.String())
 }

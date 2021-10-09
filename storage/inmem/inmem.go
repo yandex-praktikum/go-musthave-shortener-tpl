@@ -52,6 +52,7 @@ func (s *InMemStorage) Save(u model.URLToShorten) model.ShortenedURL {
 
 	id := len(s.store)
 	storedURL := model.ShortenedURL{
+		UserID:  u.UserID,
 		ID:      id,
 		LongURL: u.LongURL,
 	}
