@@ -19,13 +19,13 @@ func (h *URLShortenerHandler) handleGetUserURLs(w http.ResponseWriter, r *http.R
 
 	w.WriteHeader(http.StatusOK)
 
-	response := make([]apimodel.ShortURLForUserJson, 0, len(urls))
+	response := make([]apimodel.ShortURLForUserJSON, 0, len(urls))
 	for _, url := range urls {
 		shortURL, errAbs := h.Service.AbsoluteURL(url)
 		if errAbs != nil {
 			log.Printf("Cannot render absolute URL for shortened URL [%d]: %s", url.ID, errAbs.Error())
 		}
-		response = append(response, apimodel.ShortURLForUserJson{
+		response = append(response, apimodel.ShortURLForUserJSON{
 			ShortURL:    shortURL.String(),
 			OriginalURL: url.LongURL.String(),
 		})

@@ -39,5 +39,5 @@ func New(s storage.Storage, idService auth.IDService, baseURL url.URL) *URLShort
 }
 
 func userID(r *http.Request) int {
-	return r.Context().Value(middleware.AUTH_CONTEXT_KEY_TYPE{}).(int)
+	return r.Context().Value(middleware.AuthContextKeyType{}).(int)
 }

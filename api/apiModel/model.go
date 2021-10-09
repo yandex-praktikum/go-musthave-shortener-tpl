@@ -10,7 +10,7 @@ type ShortURLJson struct {
 	Result string `json:"result"`
 }
 
-type ShortURLForUserJson struct {
+type ShortURLForUserJSON struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
 }

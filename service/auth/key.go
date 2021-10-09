@@ -5,10 +5,10 @@ import (
 	"fmt"
 )
 
-const KEY_SIZE = 16
+const KeySize = 16
 
 func GenerateKey() ([]byte, error) {
-	b := make([]byte, KEY_SIZE)
+	b := make([]byte, KeySize)
 	_, err := rand.Read(b)
 	if err != nil {
 		return nil, fmt.Errorf("cannot generate key: %w", err)

@@ -13,9 +13,9 @@ import (
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/auth"
 )
 
-const AUTH_COOKIE_NAME = "USER-ID"
+const AuthCookieName = "USER-ID"
 
-type AUTH_CONTEXT_KEY_TYPE struct{}
+type AuthContextKeyType struct{}
 
 type Authenticator struct {
 	IDService auth.IDService
@@ -34,7 +34,7 @@ func (a *Authenticator) Authenticate(next http.Handler) http.Handler {
 			}
 		}
 
-		ctxWithUserID := context.WithValue(r.Context(), AUTH_CONTEXT_KEY_TYPE{}, *userID)
+		ctxWithUserID := context.WithValue(r.Context(), AuthContextKeyType{}, *userID)
 
 		next.ServeHTTP(w, r.WithContext(ctxWithUserID))
 	}
@@ -43,7 +43,7 @@ func (a *Authenticator) Authenticate(next http.Handler) http.Handler {
 }
 
 func (a *Authenticator) ExtractUserID(r *http.Request) *int {
-	cookie, errGetCookie := r.Cookie(AUTH_COOKIE_NAME)
+	cookie, errGetCookie := r.Cookie(AuthCookieName)
 	if errGetCookie != nil {
 		log.Printf("Cannot get authentication cookie: %s", errGetCookie.Error())
 		return nil
@@ -92,7 +92,7 @@ func (a *Authenticator) SignUp(w http.ResponseWriter) (*int, error) {
 	signedUserID := auth.SignUserID(*user)
 	v := fmt.Sprintf("%d|%x", signedUserID.ID, signedUserID.HMAC)
 	c := http.Cookie{
-		Name:  AUTH_COOKIE_NAME,
+		Name:  AuthCookieName,
 		Value: v,
 	}
 	http.SetCookie(w, &c)
