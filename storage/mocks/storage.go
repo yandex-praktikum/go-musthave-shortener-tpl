@@ -15,6 +15,12 @@ func (m *StorageMock) GetByID(id int) *model.ShortenedURL {
 	return args.Get(0).(*model.ShortenedURL)
 }
 
+func (m *StorageMock) ListByUserID(userID int) []model.ShortenedURL {
+	args := m.Called(userID)
+
+	return args.Get(0).([]model.ShortenedURL)
+}
+
 func (m *StorageMock) Save(u model.URLToShorten) model.ShortenedURL {
 	args := m.Called(u)
 

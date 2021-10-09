@@ -20,8 +20,8 @@ func New() *InMemStorage {
 }
 
 func (s *InMemStorage) GetByID(id int) *model.ShortenedURL {
-	s.RWMutex.Lock()
-	defer s.RWMutex.Unlock()
+	s.RWMutex.RLock()
+	defer s.RWMutex.RUnlock()
 
 	for _, url := range s.store {
 		if url.ID == id {
@@ -30,6 +30,20 @@ func (s *InMemStorage) GetByID(id int) *model.ShortenedURL {
 	}
 
 	return nil
+}
+
+func (s *InMemStorage) ListByUserID(userID int) []model.ShortenedURL {
+	s.RWMutex.RLock()
+	defer s.RWMutex.RUnlock()
+
+	result := make([]model.ShortenedURL, 0)
+	for _, url := range s.store {
+		if url.UserID == userID {
+			result = append(result, url)
+		}
+	}
+
+	return result
 }
 
 func (s *InMemStorage) Save(u model.URLToShorten) model.ShortenedURL {

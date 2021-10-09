@@ -8,6 +8,7 @@ import (
 )
 
 type gobURL struct {
+	UserID  int
 	ID      int
 	LongURL string
 }
@@ -24,7 +25,7 @@ func (u *gobURL) ToStoreURL() (*model.ShortenedURL, error) {
 	if errParse != nil {
 		return nil, fmt.Errorf("cannot restore url [%s] from backup: %w", u.LongURL, errParse)
 	}
-	storeURL := model.NewShortenedURL(u.ID, *url)
+	storeURL := model.NewShortenedURL(u.UserID, u.ID, *url)
 
 	return &storeURL, nil
 }

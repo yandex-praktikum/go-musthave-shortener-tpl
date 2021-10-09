@@ -9,6 +9,9 @@ type Storage interface {
 	// GetByID looks-up for a previously shortened URL.
 	GetByID(id int) *model.ShortenedURL
 
+	// ListByUserID returns all URLs shortened by the specified user.
+	ListByUserID(userID int) []model.ShortenedURL
+
 	// Save persists a shortened URL. It is responsible for generating ID.
 	Save(model.URLToShorten) model.ShortenedURL
 }

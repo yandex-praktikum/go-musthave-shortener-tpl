@@ -1,8 +1,8 @@
 package middleware
 
 import (
+	"context"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,7 +13,9 @@ import (
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/auth"
 )
 
-const COOKIE_NAME = "USER-ID"
+const AUTH_COOKIE_NAME = "USER-ID"
+
+type AUTH_CONTEXT_KEY_TYPE struct{}
 
 type Authenticator struct {
 	IDService auth.IDService
@@ -21,47 +23,36 @@ type Authenticator struct {
 
 func (a *Authenticator) Authenticate(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		cookie, errGetCookie := r.Cookie(COOKIE_NAME)
-		if errGetCookie != nil && errGetCookie != http.ErrNoCookie {
-			log.Printf("Cannot get authentication cookie: %s", errGetCookie.Error())
-			http.Error(w, "Cannot get authentication cookie", http.StatusUnauthorized)
-			return
+		userID := a.ExtractUserID(r)
+		if userID == nil {
+			var errSignUp error
+			userID, errSignUp = a.SignUp(w)
+			if errSignUp != nil {
+				log.Printf("Cannot authenticate: %s", errSignUp.Error())
+				http.Error(w, "Cannot authenticate", http.StatusUnauthorized)
+				return
+			}
 		}
 
-		if errGetCookie == http.ErrNoCookie {
-			a.SignUp(w)
-		} else if errValidate := a.Validate(cookie.Value); errValidate != nil {
-			a.SignUp(w)
-		}
+		ctxWithUserID := context.WithValue(r.Context(), AUTH_CONTEXT_KEY_TYPE{}, *userID)
 
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(ctxWithUserID))
 	}
+
 	return http.HandlerFunc(fn)
 }
 
-func (a *Authenticator) SignUp(w http.ResponseWriter) {
-	user, errSignUp := a.IDService.SignUp()
-	if errSignUp != nil {
-		log.Printf("Cannot sign up: %s", errSignUp.Error())
-		http.Error(w, "Cannot sign up", http.StatusInternalServerError)
-		return
+func (a *Authenticator) ExtractUserID(r *http.Request) *int {
+	cookie, errGetCookie := r.Cookie(AUTH_COOKIE_NAME)
+	if errGetCookie != nil {
+		log.Printf("Cannot get authentication cookie: %s", errGetCookie.Error())
+		return nil
 	}
 
-	userID := auth.SignUserID(*user)
-	v := fmt.Sprintf("%d|%x", userID.ID, userID.HMAC)
-	c := http.Cookie{
-		Name:  COOKIE_NAME,
-		Value: v,
-	}
-	http.SetCookie(w, &c)
-	fmt.Print(userID)
-}
-
-func (a *Authenticator) Validate(v string) error {
-	parts := strings.Split(v, "|")
+	parts := strings.Split(cookie.Value, "|")
 	if len(parts) != 2 {
-		msg := fmt.Sprintf("cannot parse signed user ID [%s]", v)
-		return errors.New(msg)
+		log.Printf("Cannot parse signed user ID [%s]", cookie.Value)
+		return nil
 	}
 
 	userIDStr := parts[0]
@@ -69,14 +60,14 @@ func (a *Authenticator) Validate(v string) error {
 
 	userID, errParseID := strconv.Atoi(userIDStr)
 	if errParseID != nil {
-		msg := fmt.Sprintf("cannot parse user ID [%s]", userIDStr)
-		return errors.New(msg)
+		log.Printf("Cannot parse user ID [%s]", userIDStr)
+		return nil
 	}
 
 	hmac, errParseHmac := hex.DecodeString(hmacStr)
 	if errParseHmac != nil {
-		msg := fmt.Sprintf("cannot parse signature [%s]", hmacStr)
-		return errors.New(msg)
+		log.Printf("Cannot parse signature [%s]", hmacStr)
+		return nil
 	}
 
 	sgn := model.SignedUserID{
@@ -84,5 +75,27 @@ func (a *Authenticator) Validate(v string) error {
 		HMAC: hmac,
 	}
 
-	return a.IDService.Validate(sgn)
+	if invalid := a.IDService.Validate(sgn); invalid != nil {
+		log.Printf("Signature is invalid: %s", invalid.Error())
+		return nil
+	}
+
+	return &sgn.ID
+}
+
+func (a *Authenticator) SignUp(w http.ResponseWriter) (*int, error) {
+	user, errSignUp := a.IDService.SignUp()
+	if errSignUp != nil {
+		return nil, fmt.Errorf("cannot sign up: %w", errSignUp)
+	}
+
+	signedUserID := auth.SignUserID(*user)
+	v := fmt.Sprintf("%d|%x", signedUserID.ID, signedUserID.HMAC)
+	c := http.Cookie{
+		Name:  AUTH_COOKIE_NAME,
+		Value: v,
+	}
+	http.SetCookie(w, &c)
+
+	return &signedUserID.ID, nil
 }

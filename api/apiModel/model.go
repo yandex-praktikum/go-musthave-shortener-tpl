@@ -9,3 +9,8 @@ type LongURLJson struct {
 type ShortURLJson struct {
 	Result string `json:"result"`
 }
+
+type ShortURLForUserJson struct {
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
+}
