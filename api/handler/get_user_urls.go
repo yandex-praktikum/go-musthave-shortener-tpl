@@ -17,19 +17,21 @@ func (h *URLShortenerHandler) handleGetUserURLs(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-
 	response := make([]apimodel.ShortURLForUserJSON, 0, len(urls))
 	for _, url := range urls {
 		shortURL, errAbs := h.Service.AbsoluteURL(url)
 		if errAbs != nil {
 			log.Printf("Cannot render absolute URL for shortened URL [%d]: %s", url.ID, errAbs.Error())
+			continue
 		}
 		response = append(response, apimodel.ShortURLForUserJSON{
 			ShortURL:    shortURL.String(),
 			OriginalURL: url.LongURL.String(),
 		})
 	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 
 	enc := json.NewEncoder(w)
 	if errEnc := enc.Encode(response); errEnc != nil {
