@@ -8,23 +8,19 @@ import (
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/api/middleware"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/auth"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/shortener"
-	shortenerV1 "github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/shortener/v1"
-	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage"
 )
 
 type URLShortenerHandler struct {
 	*chi.Mux
-	Storage storage.ShortenerStorage
 	BaseURL url.URL
-	Service shortener.URLShortener
+	Service shortener.URLService
 }
 
-func New(s storage.ShortenerStorage, idService auth.IDService, baseURL url.URL) *URLShortenerHandler {
+func New(shortenerService shortener.URLService, idService auth.IDService, baseURL url.URL) *URLShortenerHandler {
 	h := &URLShortenerHandler{
 		Mux:     chi.NewMux(),
-		Storage: s,
 		BaseURL: baseURL,
-		Service: shortenerV1.New(s, baseURL),
+		Service: shortenerService,
 	}
 
 	auth := middleware.Authenticator{IDService: idService}

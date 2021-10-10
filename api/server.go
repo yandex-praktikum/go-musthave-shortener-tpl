@@ -7,7 +7,6 @@ import (
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/api/handler"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/auth"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/shortener"
-	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage/inmem"
 )
 
 type URLShortenerServer struct {
@@ -16,15 +15,14 @@ type URLShortenerServer struct {
 
 // New makes an instance of HTTP server that is ready to run
 func New(
-	shortenerSrv shortener.URLShortener,
+	shortenerSrv shortener.URLService,
 	authSrv auth.IDService,
 	addr string, baseURL url.URL,
 ) *URLShortenerServer {
-	storage := inmem.New()
 	server := URLShortenerServer{
 		Server: http.Server{
 			Addr:    addr,
-			Handler: handler.New(storage, authSrv, baseURL),
+			Handler: handler.New(shortenerSrv, authSrv, baseURL),
 		},
 	}
 

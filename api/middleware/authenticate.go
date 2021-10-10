@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"
@@ -25,6 +24,8 @@ func (a *Authenticator) Authenticate(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		userID := a.ExtractUserID(r)
 		if userID == nil {
+			log.Printf("Signing up new user")
+
 			var errSignUp error
 			userID, errSignUp = a.SignUp(w)
 			if errSignUp != nil {
@@ -56,17 +57,11 @@ func (a *Authenticator) ExtractUserID(r *http.Request) *int {
 	}
 
 	userIDStr := parts[0]
-	hmacStr := parts[1]
+	hmac := parts[1]
 
 	userID, errParseID := strconv.Atoi(userIDStr)
 	if errParseID != nil {
 		log.Printf("Cannot parse user ID [%s]", userIDStr)
-		return nil
-	}
-
-	hmac, errParseHmac := hex.DecodeString(hmacStr)
-	if errParseHmac != nil {
-		log.Printf("Cannot parse signature [%s]", hmacStr)
 		return nil
 	}
 
@@ -89,8 +84,12 @@ func (a *Authenticator) SignUp(w http.ResponseWriter) (*int, error) {
 		return nil, fmt.Errorf("cannot sign up: %w", errSignUp)
 	}
 
-	signedUserID := auth.SignUserID(*user)
-	v := fmt.Sprintf("%d|%x", signedUserID.ID, signedUserID.HMAC)
+	signedUserID, errSign := auth.SignUserID(*user)
+	if errSign != nil {
+		return nil, fmt.Errorf("cannot sign user id: %w", errSign)
+	}
+
+	v := fmt.Sprintf("%d|%s", signedUserID.ID, signedUserID.HMAC)
 	c := http.Cookie{
 		Name:  AuthCookieName,
 		Value: v,

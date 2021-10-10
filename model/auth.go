@@ -2,14 +2,14 @@ package model
 
 type SignedUserID struct {
 	ID   int
-	HMAC []byte
+	HMAC string
 }
 
 type UserToAdd struct {
-	Key []byte
+	Key string
 }
 
 type User struct {
 	ID  int
-	Key []byte
+	Key string
 }

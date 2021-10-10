@@ -17,7 +17,12 @@ func (h *URLShortenerHandler) handleGetShortURL(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	url := h.Storage.GetByID(id)
+	url, errGet := h.Service.GetByID(id)
+	if errGet != nil {
+		log.Printf("Cannot get URL by ID [%d]: %s", id, errGet.Error())
+		http.Error(w, "Cannot get URL by ID", http.StatusInternalServerError)
+		return
+	}
 	if url == nil {
 		http.NotFound(w, r)
 		return

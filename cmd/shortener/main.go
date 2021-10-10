@@ -9,6 +9,9 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx/v4/stdlib"
 
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/api"
@@ -22,6 +25,14 @@ func main() {
 	conf, errConf := config.Load()
 	if errConf != nil {
 		log.Fatalf("Cannot load config: %s", errConf.Error())
+	}
+
+	m, errMigrations := migrate.New("file://db/migrations", conf.DatabaseDSN)
+	if errMigrations != nil {
+		log.Fatalf("Cannot init DB migrations: %s", errMigrations.Error())
+	}
+	if errUp := m.Up(); errUp != nil && errUp != migrate.ErrNoChange {
+		log.Fatalf("Cannot migrate DB: %s", errUp.Error())
 	}
 
 	db, errDb := newDataSource(conf.DatabaseDSN)

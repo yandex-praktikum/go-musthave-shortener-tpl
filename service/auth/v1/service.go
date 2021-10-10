@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"encoding/hex"
 	"fmt"
 
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
@@ -22,7 +23,7 @@ func (s *Service) SignUp() (*model.User, error) {
 		return nil, fmt.Errorf("cannot sign up user: %w", errKey)
 	}
 
-	userToAdd := model.UserToAdd{Key: key}
+	userToAdd := model.UserToAdd{Key: hex.EncodeToString(key)}
 	user, errAdd := s.Save(userToAdd)
 	if errAdd != nil {
 		return nil, fmt.Errorf("cannot save new user: %w", errAdd)

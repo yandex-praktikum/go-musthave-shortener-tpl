@@ -13,7 +13,7 @@ import (
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/api/handler"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
 	authmocks "github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/auth/mocks"
-	storagemocks "github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage/mocks"
+	urlmocks "github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/shortener/mocks"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,13 +23,15 @@ var longURL = newURL("http://test.com")
 func TestHandlePostLongURL(t *testing.T) {
 	rw := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(longURL.String()))
-	storage := new(storagemocks.StorageMock)
+	urlService := new(urlmocks.URLServiceMock)
 	idService := new(authmocks.IDServiceMock)
-	storableURL := model.NewURLToShorten(0, longURL)
-	storeURL := model.NewShortenedURL(0, 123, longURL)
-	h := handler.New(storage, idService, baseURL)
-	storage.On("Save", storableURL).Return(storeURL)
-	idService.On("SignUp").Return(&model.User{ID: 0, Key: []byte("")}, nil)
+	urlToShorten := model.NewURLToShorten(0, longURL)
+	shortenedURL := model.NewShortenedURL(0, 123, longURL)
+	absoluteShortURL, _ := url.Parse("http://localhost:8080/123")
+	h := handler.New(urlService, idService, baseURL)
+	urlService.On("ShortenURL", urlToShorten).Return(&shortenedURL, nil)
+	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
+	idService.On("SignUp").Return(&model.User{ID: 0, Key: ""}, nil)
 
 	h.ServeHTTP(rw, req)
 
@@ -50,13 +52,15 @@ func TestHandlePostApiShorten(t *testing.T) {
 		"/api/shorten",
 		bytes.NewBufferString(testLongURLJson),
 	)
-	storage := new(storagemocks.StorageMock)
+	urlService := new(urlmocks.URLServiceMock)
 	idService := new(authmocks.IDServiceMock)
-	storableURL := model.NewURLToShorten(0, longURL)
-	storeURL := model.NewShortenedURL(0, 123, longURL)
-	h := handler.New(storage, idService, baseURL)
-	storage.On("Save", storableURL).Return(storeURL)
-	idService.On("SignUp").Return(&model.User{ID: 0, Key: []byte("")}, nil)
+	urlToShorten := model.NewURLToShorten(0, longURL)
+	shortenedURL := model.NewShortenedURL(0, 123, longURL)
+	absoluteShortURL, _ := url.Parse("http://localhost:8080/123")
+	h := handler.New(urlService, idService, baseURL)
+	urlService.On("ShortenURL", urlToShorten).Return(&shortenedURL, nil)
+	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
+	idService.On("SignUp").Return(&model.User{ID: 0, Key: ""}, nil)
 
 	h.ServeHTTP(rw, req)
 
@@ -73,12 +77,12 @@ func TestHandlePostApiShorten(t *testing.T) {
 func TestHandleGetShortUrl(t *testing.T) {
 	rw := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/123", nil)
-	storage := new(storagemocks.StorageMock)
+	urlService := new(urlmocks.URLServiceMock)
 	idService := new(authmocks.IDServiceMock)
-	storeURL := model.NewShortenedURL(0, 123, longURL)
-	h := handler.New(storage, idService, baseURL)
-	storage.On("GetByID", 123).Return(&storeURL)
-	idService.On("SignUp").Return(&model.User{ID: 0, Key: []byte("")}, nil)
+	shortenedURL := model.NewShortenedURL(0, 123, longURL)
+	h := handler.New(urlService, idService, baseURL)
+	urlService.On("GetByID", 123).Return(&shortenedURL, nil)
+	idService.On("SignUp").Return(&model.User{ID: 0, Key: ""}, nil)
 
 	h.ServeHTTP(rw, req)
 

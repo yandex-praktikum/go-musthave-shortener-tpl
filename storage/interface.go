@@ -7,13 +7,13 @@ import "github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
 // of a single request.
 type ShortenerStorage interface {
 	// GetByID looks-up for a previously shortened URL.
-	GetByID(id int) *model.ShortenedURL
+	GetByID(id int) (*model.ShortenedURL, error)
 
 	// ListByUserID returns all URLs shortened by the specified user.
-	ListByUserID(userID int) []model.ShortenedURL
+	ListByUserID(userID int) ([]model.ShortenedURL, error)
 
 	// Save persists a shortened URL. It is responsible for generating ID.
-	Save(model.URLToShorten) model.ShortenedURL
+	Save(model.URLToShorten) (*model.ShortenedURL, error)
 }
 
 // AuthStorage provides methods to persist and retrieve

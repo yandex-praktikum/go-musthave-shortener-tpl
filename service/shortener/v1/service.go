@@ -19,10 +19,21 @@ func New(s storage.ShortenerStorage, u url.URL) *Service {
 }
 
 func (s *Service) ShortenURL(u model.URLToShorten) (*model.ShortenedURL, error) {
-	url := s.Storage.Save(u)
+	url, errSave := s.Storage.Save(u)
+	if errSave != nil {
+		return nil, fmt.Errorf("cannot shorten url: %w", errSave)
+	}
 	log.Printf("Shortened: %s", url)
 
-	return &url, nil
+	return url, nil
+}
+
+func (s *Service) GetByID(id int) (*model.ShortenedURL, error) {
+	return s.Storage.GetByID(id)
+}
+
+func (s *Service) GetUserURLs(userID int) ([]model.ShortenedURL, error) {
+	return s.Storage.ListByUserID(userID)
 }
 
 func (s *Service) AbsoluteURL(u model.ShortenedURL) (*url.URL, error) {
