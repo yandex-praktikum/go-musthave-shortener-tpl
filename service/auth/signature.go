@@ -21,12 +21,12 @@ func SignUserID(u model.User) (*model.SignedUserID, error) {
 	h.Write([]byte(strconv.Itoa(u.ID)))
 	hmac := h.Sum(nil)
 
-	signedUserId := model.SignedUserID{
+	signedUserID := model.SignedUserID{
 		ID:   u.ID,
 		HMAC: hex.EncodeToString(hmac),
 	}
 
-	return &signedUserId, nil
+	return &signedUserID, nil
 }
 
 func ValidateSignature(u model.User, sgn model.SignedUserID) error {

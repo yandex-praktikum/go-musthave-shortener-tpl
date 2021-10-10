@@ -49,6 +49,9 @@ func (s *PgShortenerStorage) ListByUserID(userID int) ([]model.ShortenedURL, err
 
 		result = append(result, *url)
 	}
+	if rows.Err() != nil {
+		return result, fmt.Errorf("cannot iterate all results from DB: %w", rows.Err())
+	}
 
 	return result, nil
 }

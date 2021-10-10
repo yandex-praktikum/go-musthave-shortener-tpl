@@ -35,9 +35,9 @@ func main() {
 		log.Fatalf("Cannot migrate DB: %s", errUp.Error())
 	}
 
-	db, errDb := newDataSource(conf.DatabaseDSN)
-	if errDb != nil {
-		log.Fatalf("Cannot start DB: %s", errDb.Error())
+	db, errDB := newDataSource(conf.DatabaseDSN)
+	if errDB != nil {
+		log.Fatalf("Cannot start DB: %s", errDB.Error())
 	}
 
 	authStorage := pg.NewAuthStorage(db)
