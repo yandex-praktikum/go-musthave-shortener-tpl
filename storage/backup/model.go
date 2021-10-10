@@ -20,7 +20,7 @@ func newGobURL(u model.ShortenedURL) gobURL {
 	}
 }
 
-func (u *gobURL) ToStoreURL() (*model.ShortenedURL, error) {
+func (u *gobURL) ToShortenedURL() (*model.ShortenedURL, error) {
 	url, errParse := url.Parse(u.LongURL)
 	if errParse != nil {
 		return nil, fmt.Errorf("cannot restore url [%s] from backup: %w", u.LongURL, errParse)

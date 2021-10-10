@@ -36,7 +36,7 @@ func (r *reader) readURL() (*model.ShortenedURL, error) {
 	if errDecode != nil {
 		return nil, errDecode
 	}
-	storeURL, errParse := u.ToStoreURL()
+	storeURL, errParse := u.ToShortenedURL()
 	if errParse != nil {
 		return nil, fmt.Errorf("cannot read StoreURL: %w", errParse)
 	}
