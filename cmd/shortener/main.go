@@ -29,10 +29,11 @@ func main() {
 		log.Fatalf("Cannot start DB: %s", errDb.Error())
 	}
 
-	storage := pg.New(db)
+	authStorage := pg.NewAuthStorage(db)
+	shortenerStorage := pg.NewShortenerStorage(db)
 
-	shortenerSrv := shortener.New(storage, conf.BaseURL)
-	authSrv := auth.New(storage)
+	authSrv := auth.New(authStorage)
+	shortenerSrv := shortener.New(shortenerStorage, conf.BaseURL)
 
 	server := api.New(shortenerSrv, authSrv, conf.ServerAddress, conf.BaseURL)
 	log.Println("Starting server...")

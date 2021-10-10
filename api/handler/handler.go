@@ -14,26 +14,33 @@ import (
 
 type URLShortenerHandler struct {
 	*chi.Mux
-	Storage storage.Storage
+	Storage storage.ShortenerStorage
 	BaseURL url.URL
 	Service shortener.URLShortener
 }
 
-func New(s storage.Storage, idService auth.IDService, baseURL url.URL) *URLShortenerHandler {
+func New(s storage.ShortenerStorage, idService auth.IDService, baseURL url.URL) *URLShortenerHandler {
 	h := &URLShortenerHandler{
 		Mux:     chi.NewMux(),
 		Storage: s,
 		BaseURL: baseURL,
 		Service: shortenerV1.New(s, baseURL),
 	}
+
 	auth := middleware.Authenticator{IDService: idService}
-	h.Use(auth.Authenticate)
-	h.Use(middleware.GzipDecompressor)
-	h.Use(middleware.GzipCompressor)
-	h.Post("/", h.handlePostLongURL)
-	h.Post("/api/shorten", h.handlePostAPIShorten)
-	h.Get("/{id}", h.handleGetShortURL)
-	h.Get("/user/urls", h.handleGetUserURLs)
+	h.Group(func(r chi.Router) {
+		r.Use(auth.Authenticate)
+		r.Use(middleware.GzipDecompressor)
+		r.Use(middleware.GzipCompressor)
+		r.Post("/", h.handlePostLongURL)
+		r.Post("/api/shorten", h.handlePostAPIShorten)
+		r.Get("/{id}", h.handleGetShortURL)
+		r.Get("/user/urls", h.handleGetUserURLs)
+	})
+
+	h.Group(func(r chi.Router) {
+		r.Get("/ping", h.handleGetPing)
+	})
 
 	return h
 }

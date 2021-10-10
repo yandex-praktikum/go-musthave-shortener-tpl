@@ -5,6 +5,10 @@ type SignedUserID struct {
 	HMAC []byte
 }
 
+type UserToAdd struct {
+	Key []byte
+}
+
 type User struct {
 	ID  int
 	Key []byte

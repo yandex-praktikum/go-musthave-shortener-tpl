@@ -1,9 +1,7 @@
 package v1
 
 import (
-	"errors"
 	"fmt"
-	"sync"
 
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/auth"
@@ -11,45 +9,33 @@ import (
 )
 
 type Service struct {
-	sync.RWMutex
-
-	users []model.User
+	storage.AuthStorage
 }
 
-func New(_storage storage.Storage) *Service {
-	return &Service{
-		RWMutex: sync.RWMutex{},
-		users:   make([]model.User, 0),
-	}
+func New(storage storage.AuthStorage) *Service {
+	return &Service{storage}
 }
 
 func (s *Service) SignUp() (*model.User, error) {
-	s.RWMutex.Lock()
-	defer s.RWMutex.Unlock()
-
 	key, errKey := auth.GenerateKey()
 	if errKey != nil {
 		return nil, fmt.Errorf("cannot sign up user: %w", errKey)
 	}
 
-	id := len(s.users)
-	u := model.User{
-		ID:  id,
-		Key: key,
+	userToAdd := model.UserToAdd{Key: key}
+	user, errAdd := s.Save(userToAdd)
+	if errAdd != nil {
+		return nil, fmt.Errorf("cannot save new user: %w", errAdd)
 	}
-	s.users = append(s.users, u)
 
-	return &u, nil
+	return user, nil
 }
 
 func (s *Service) Validate(sgn model.SignedUserID) error {
-	for _, u := range s.users {
-		if u.ID == sgn.ID {
-			return auth.ValidateSignature(u, sgn)
-		}
+	u, errGet := s.GetByID(sgn.ID)
+	if errGet != nil {
+		return fmt.Errorf("cannot validate signature: %w", errGet)
 	}
 
-	msg := fmt.Sprintf("cannot find user with ID [%d]", sgn.ID)
-
-	return errors.New(msg)
+	return auth.ValidateSignature(*u, sgn)
 }

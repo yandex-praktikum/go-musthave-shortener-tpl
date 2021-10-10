@@ -3,9 +3,9 @@ package storage
 
 import "github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
 
-// Storage provides methods to perform actions in context
+// ShortenerStorage provides methods to persist and retrieve shortened URLs
 // of a single request.
-type Storage interface {
+type ShortenerStorage interface {
 	// GetByID looks-up for a previously shortened URL.
 	GetByID(id int) *model.ShortenedURL
 
@@ -16,17 +16,13 @@ type Storage interface {
 	Save(model.URLToShorten) model.ShortenedURL
 }
 
-// BulkStorage is used to backup and restore the server state
-// It extends Storage for convenience because usually it is the same
-// instance.
-type BulkStorage interface {
-	Storage
+// AuthStorage provides methods to persist and retrieve
+// authentication-related staff.
+type AuthStorage interface {
+	// GetByID looks-up an existing user
+	GetByID(id int) (*model.User, error)
 
-	// GetAll returns all shortened URLs.
-	GetAll() []model.ShortenedURL
-
-	// Load persists a shortened URL. It is different from Storage.Save
-	// in that is does not generate an ID, but takes whatever comes
-	// with the URL.
-	Load(u model.ShortenedURL)
+	// Save adds a new user. This method is responsible for generation
+	// of a user ID.
+	Save(u model.UserToAdd) (*model.User, error)
 }

@@ -10,11 +10,11 @@ import (
 )
 
 type Service struct {
-	Storage storage.Storage
+	Storage storage.ShortenerStorage
 	BaseURL url.URL
 }
 
-func New(s storage.Storage, u url.URL) *Service {
+func New(s storage.ShortenerStorage, u url.URL) *Service {
 	return &Service{s, u}
 }
 
