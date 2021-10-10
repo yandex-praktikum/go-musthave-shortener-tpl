@@ -21,6 +21,7 @@ type Config struct {
 	ServerAddress string  `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
 	BaseURL       url.URL `env:"BASE_URL" envDefault:"http://localhost:8080"`
 	StorageFile   string  `env:"FILE_STORAGE_PATH" envDefault:"urlStorage.gob"`
+	DatabaseDSN   string  `env:"DATABASE_DSN" envDefault:"postgres://postgres:postgres@localhost:5432/praktikum?sslmode=disable"`
 }
 
 func Load() (*Config, error) {
@@ -38,6 +39,7 @@ func Load() (*Config, error) {
 func overrideWithCliParams(config *Config) {
 	flag.StringVar(&config.ServerAddress, "a", config.ServerAddress, "Server address")
 	flag.StringVar(&config.StorageFile, "f", config.StorageFile, "File storage path")
+	flag.StringVar(&config.DatabaseDSN, "d", config.DatabaseDSN, "Database connection string")
 	flag.Func("b", "Base URL", func(flagValue string) error {
 		if flagValue == "" {
 			return nil

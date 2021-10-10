@@ -2,13 +2,20 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 
+	_ "github.com/jackc/pgx/v4/stdlib"
+
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/api"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/config"
+	auth "github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/auth/v1"
+	shortener "github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/shortener/v1"
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage/pg"
 )
 
 func main() {
@@ -17,7 +24,17 @@ func main() {
 		log.Fatalf("Cannot load config: %s", errConf.Error())
 	}
 
-	server := api.New(*conf)
+	db, errDb := newDataSource(conf.DatabaseDSN)
+	if errDb != nil {
+		log.Fatalf("Cannot start DB: %s", errDb.Error())
+	}
+
+	storage := pg.New(db)
+
+	shortenerSrv := shortener.New(storage, conf.BaseURL)
+	authSrv := auth.New(storage)
+
+	server := api.New(shortenerSrv, authSrv, conf.ServerAddress, conf.BaseURL)
 	log.Println("Starting server...")
 
 	go start(server)
@@ -36,4 +53,17 @@ func start(s *api.URLShortenerServer) {
 	if err != http.ErrServerClosed {
 		log.Fatalf("Cannot start the server: %v", err.Error())
 	}
+}
+
+func newDataSource(databaseURL string) (*sql.DB, error) {
+	db, errOpen := sql.Open("pgx", databaseURL)
+	if errOpen != nil {
+		return nil, fmt.Errorf("cannot connect to DB: %w", errOpen)
+	}
+
+	if errPing := db.Ping(); errPing != nil {
+		return nil, fmt.Errorf("cannot verify that DB connection is alive: %w", errPing)
+	}
+
+	return db, nil
 }

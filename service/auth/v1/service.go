@@ -7,6 +7,7 @@ import (
 
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/auth"
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage"
 )
 
 type Service struct {
@@ -15,7 +16,7 @@ type Service struct {
 	users []model.User
 }
 
-func New() *Service {
+func New(_storage storage.Storage) *Service {
 	return &Service{
 		RWMutex: sync.RWMutex{},
 		users:   make([]model.User, 0),
