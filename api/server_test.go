@@ -74,6 +74,46 @@ func TestHandlePostApiShorten(t *testing.T) {
 	require.JSONEq(t, `{"result": "http://localhost:8080/123"}`, string(body))
 }
 
+func TestHandlePostShortenBatch(t *testing.T) {
+	rw := httptest.NewRecorder()
+	testLongURLBatchJson := fmt.Sprintf(`[
+			{
+				"correlation_id": "abc",
+				"original_url": "%s"
+			}
+		]`, &longURL)
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/api/shorten/batch",
+		bytes.NewBufferString(testLongURLBatchJson),
+	)
+	urlService := new(urlmocks.URLServiceMock)
+	idService := new(authmocks.IDServiceMock)
+	urlToShorten := model.NewURLToShorten(0, longURL)
+	shortenedURL := model.NewShortenedURL(0, 123, longURL)
+	absoluteShortURL, _ := url.Parse("http://localhost:8080/123")
+	h := handler.New(urlService, idService, baseURL)
+	urlService.On("ShortenURL", urlToShorten).Return(&shortenedURL, nil)
+	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
+	idService.On("SignUp").Return(&model.User{ID: 0, Key: ""}, nil)
+
+	h.ServeHTTP(rw, req)
+
+	res := rw.Result()
+	defer res.Body.Close()
+	body, errBody := ioutil.ReadAll(res.Body)
+	require.NoError(t, errBody)
+
+	require.Equal(t, http.StatusCreated, res.StatusCode, "status code")
+	require.Equal(t, "application/json", res.Header.Get("Content-Type"), "Content-Type")
+	require.JSONEq(t, `[
+			{
+					"correlation_id": "abc",
+					"short_url": "http://localhost:8080/123"
+			}
+		]`, string(body))
+}
+
 func TestHandleGetShortUrl(t *testing.T) {
 	rw := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/123", nil)

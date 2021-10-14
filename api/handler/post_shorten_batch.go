@@ -55,8 +55,10 @@ func (h *URLShortenerHandler) handlePostShortenBatch(w http.ResponseWriter, r *h
 
 		shortURLs = append(shortURLs, shortBatchURL)
 
+		w.Header().Add("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
 		enc := json.NewEncoder(w)
-		if errEnc := enc.Encode(shortURLs); enc != nil {
+		if errEnc := enc.Encode(shortURLs); errEnc != nil {
 			log.Printf("Cannot write response: %s", errEnc.Error())
 			return
 		}
