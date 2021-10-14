@@ -30,6 +30,7 @@ func New(shortenerService shortener.URLService, idService auth.IDService, baseUR
 		r.Use(middleware.GzipCompressor)
 		r.Post("/", h.handlePostLongURL)
 		r.Post("/api/shorten", h.handlePostAPIShorten)
+		r.Post("/api/shorten/batch", h.handlePostAPIShorten)
 		r.Get("/{id}", h.handleGetShortURL)
 		r.Get("/user/urls", h.handleGetUserURLs)
 	})
