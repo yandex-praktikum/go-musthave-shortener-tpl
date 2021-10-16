@@ -23,6 +23,12 @@ func (m *URLServiceMock) GetByID(id int) (*model.ShortenedURL, error) {
 	return args.Get(0).(*model.ShortenedURL), args.Error(1)
 }
 
+func (m *URLServiceMock) LookupURL(u url.URL) (*model.ShortenedURL, error) {
+	args := m.Called(u)
+
+	return args.Get(0).(*model.ShortenedURL), args.Error(1)
+}
+
 func (m *URLServiceMock) GetUserURLs(userID int) ([]model.ShortenedURL, error) {
 	args := m.Called(userID)
 

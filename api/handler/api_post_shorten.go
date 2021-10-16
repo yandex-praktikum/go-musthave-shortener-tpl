@@ -42,7 +42,7 @@ func (h *URLShortenerHandler) handlePostAPIShorten(w http.ResponseWriter, r *htt
 			return
 		}
 
-		h.writeResponseApiPostShorten(w, http.StatusConflict, *url)
+		h.writeResponseAPIPostShorten(w, http.StatusConflict, *url)
 		return
 	}
 	if errShorten != nil {
@@ -51,10 +51,10 @@ func (h *URLShortenerHandler) handlePostAPIShorten(w http.ResponseWriter, r *htt
 		return
 	}
 
-	h.writeResponseApiPostShorten(w, http.StatusCreated, *shortenedURL)
+	h.writeResponseAPIPostShorten(w, http.StatusCreated, *shortenedURL)
 }
 
-func (h *URLShortenerHandler) writeResponseApiPostShorten(w http.ResponseWriter, status int, u model.ShortenedURL) {
+func (h *URLShortenerHandler) writeResponseAPIPostShorten(w http.ResponseWriter, status int, u model.ShortenedURL) {
 	absoluteURL, errAbsolute := h.Service.AbsoluteURL(u)
 	if errAbsolute != nil {
 		log.Printf("Cannot resolve absolute URL: %s", errAbsolute)
