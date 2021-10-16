@@ -14,6 +14,7 @@ import (
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
 	authmocks "github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/auth/mocks"
 	urlmocks "github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/shortener/mocks"
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,15 +24,18 @@ var longURL = newURL("http://test.com")
 func TestHandlePostLongURL(t *testing.T) {
 	rw := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(longURL.String()))
-	urlService := new(urlmocks.URLServiceMock)
-	idService := new(authmocks.IDServiceMock)
 	urlToShorten := model.NewURLToShorten(0, longURL)
 	shortenedURL := model.NewShortenedURL(0, 123, longURL)
 	absoluteShortURL, _ := url.Parse("http://localhost:8080/123")
-	h := handler.New(urlService, idService, baseURL)
+
+	urlService := new(urlmocks.URLServiceMock)
 	urlService.On("ShortenURL", urlToShorten).Return(&shortenedURL, nil)
 	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
+
+	idService := new(authmocks.IDServiceMock)
 	idService.On("SignUp").Return(&model.User{ID: 0, Key: ""}, nil)
+
+	h := handler.New(urlService, idService, baseURL)
 
 	h.ServeHTTP(rw, req)
 
@@ -41,6 +45,34 @@ func TestHandlePostLongURL(t *testing.T) {
 	require.NoError(t, errBody)
 
 	require.Equal(t, http.StatusCreated, res.StatusCode, "status code")
+	require.Equal(t, "http://localhost:8080/123", string(body))
+}
+
+func TestHandlePostLongURLConflict(t *testing.T) {
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(longURL.String()))
+	urlToShorten := model.NewURLToShorten(0, longURL)
+	shortenedURL := model.NewShortenedURL(0, 123, longURL)
+	absoluteShortURL, _ := url.Parse("http://localhost:8080/123")
+
+	urlService := new(urlmocks.URLServiceMock)
+	urlService.On("ShortenURL", urlToShorten).Return(nil, storage.ErrDuplicateURL)
+	urlService.On("LookupURL", longURL).Return(&shortenedURL, nil)
+	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
+
+	idService := new(authmocks.IDServiceMock)
+	idService.On("SignUp").Return(&model.User{ID: 0, Key: ""}, nil)
+
+	h := handler.New(urlService, idService, baseURL)
+
+	h.ServeHTTP(rw, req)
+
+	res := rw.Result()
+	defer res.Body.Close()
+	body, errBody := ioutil.ReadAll(res.Body)
+	require.NoError(t, errBody)
+
+	require.Equal(t, http.StatusConflict, res.StatusCode, "status code")
 	require.Equal(t, "http://localhost:8080/123", string(body))
 }
 
@@ -70,6 +102,41 @@ func TestHandlePostApiShorten(t *testing.T) {
 	require.NoError(t, errBody)
 
 	require.Equal(t, http.StatusCreated, res.StatusCode, "status code")
+	require.Equal(t, "application/json", res.Header.Get("Content-Type"), "Content-Type")
+	require.JSONEq(t, `{"result": "http://localhost:8080/123"}`, string(body))
+}
+
+func TestHandlePostApiShortenConflict(t *testing.T) {
+	rw := httptest.NewRecorder()
+	testLongURLJson := fmt.Sprintf(`{"url": "%s"}`, &longURL)
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/api/shorten",
+		bytes.NewBufferString(testLongURLJson),
+	)
+
+	urlToShorten := model.NewURLToShorten(0, longURL)
+	shortenedURL := model.NewShortenedURL(0, 123, longURL)
+	absoluteShortURL, _ := url.Parse("http://localhost:8080/123")
+
+	urlService := new(urlmocks.URLServiceMock)
+	urlService.On("ShortenURL", urlToShorten).Return(nil, storage.ErrDuplicateURL)
+	urlService.On("LookupURL", longURL).Return(&shortenedURL, nil)
+	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
+
+	idService := new(authmocks.IDServiceMock)
+	idService.On("SignUp").Return(&model.User{ID: 0, Key: ""}, nil)
+
+	h := handler.New(urlService, idService, baseURL)
+
+	h.ServeHTTP(rw, req)
+
+	res := rw.Result()
+	defer res.Body.Close()
+	body, errBody := ioutil.ReadAll(res.Body)
+	require.NoError(t, errBody)
+
+	require.Equal(t, http.StatusConflict, res.StatusCode, "status code")
 	require.Equal(t, "application/json", res.Header.Get("Content-Type"), "Content-Type")
 	require.JSONEq(t, `{"result": "http://localhost:8080/123"}`, string(body))
 }
@@ -130,6 +197,22 @@ func TestHandleGetShortUrl(t *testing.T) {
 	defer res.Body.Close()
 	require.Equal(t, http.StatusTemporaryRedirect, res.StatusCode, "status code")
 	require.Equal(t, longURL.String(), res.Header.Get("Location"), "location")
+}
+
+func TestHandleGetShortUrlNotFound(t *testing.T) {
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/123", nil)
+	urlService := new(urlmocks.URLServiceMock)
+	idService := new(authmocks.IDServiceMock)
+	h := handler.New(urlService, idService, baseURL)
+	urlService.On("GetByID", 123).Return(nil, nil)
+	idService.On("SignUp").Return(&model.User{ID: 0, Key: ""}, nil)
+
+	h.ServeHTTP(rw, req)
+
+	res := rw.Result()
+	defer res.Body.Close()
+	require.Equal(t, http.StatusNotFound, res.StatusCode, "status code")
 }
 
 func newURL(urlStr string) url.URL {
