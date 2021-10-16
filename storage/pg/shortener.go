@@ -2,10 +2,15 @@ package pg
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
+	"log"
 	"net/url"
 
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 )
 
 type PgShortenerStorage struct {
@@ -21,7 +26,18 @@ func (s *PgShortenerStorage) GetByID(id int) (*model.ShortenedURL, error) {
 
 	url, errMap := mapShortenedURL(row)
 	if errMap != nil {
-		return nil, fmt.Errorf("cannot get url by id [%d]: %w", id, errMap)
+		return nil, fmt.Errorf("cannot get URL by id [%d]: %w", id, errMap)
+	}
+
+	return url, nil
+}
+
+func (s *PgShortenerStorage) LookupURL(u url.URL) (*model.ShortenedURL, error) {
+	row := s.QueryRow("select URLS_ID, URLS_ORIGINAL_URL, USERS_ID from URLS where URLS_ORIGINAL_URL = $1", u.String())
+
+	url, errMap := mapShortenedURL(row)
+	if errMap != nil {
+		return nil, fmt.Errorf("cannot lookup URL [%s]: %w", u.String(), errMap)
 	}
 
 	return url, nil
@@ -59,12 +75,17 @@ func (s *PgShortenerStorage) ListByUserID(userID int) ([]model.ShortenedURL, err
 func (s *PgShortenerStorage) Save(u model.URLToShorten) (*model.ShortenedURL, error) {
 	row := s.QueryRow(`
 		insert into URLS (URLS_ORIGINAL_URL, USERS_ID) 
-		values($1, $2) 
+		values($1, $2)
 		returning URLS_ID, URLS_ORIGINAL_URL, USERS_ID
 	`, u.LongURL.String(), u.UserID)
 
 	url, errMap := mapShortenedURL(row)
 	if errMap != nil {
+		var dbErr *pgconn.PgError
+		if errors.As(errMap, &dbErr) && dbErr.Code == pgerrcode.UniqueViolation {
+			log.Printf("Duplicate URL: %s", u.LongURL.String())
+			errMap = storage.ErrDuplicateURL
+		}
 		return nil, fmt.Errorf("cannot insert url: %w", errMap)
 	}
 

@@ -2,13 +2,15 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 
-	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/api/apiModel"
+	apimodel "github.com/im-tollu/yandex-go-musthave-shortener-tpl/api/apiModel"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage"
 )
 
 func (h *URLShortenerHandler) handlePostAPIShorten(w http.ResponseWriter, r *http.Request) {
@@ -32,21 +34,37 @@ func (h *URLShortenerHandler) handlePostAPIShorten(w http.ResponseWriter, r *htt
 	userID := userID(r)
 	u := model.NewURLToShorten(userID, *longURL)
 	shortenedURL, errShorten := h.Service.ShortenURL(u)
+	if errors.Is(errShorten, storage.ErrDuplicateURL) {
+		url, errGet := h.Service.LookupURL(u.LongURL)
+		if errGet != nil {
+			log.Printf("Duplicate URL, but cannot find [%s]: %s", u.LongURL.String(), errGet.Error())
+			http.Error(w, "Duplicate URL, but cannot find", http.StatusInternalServerError)
+			return
+		}
+
+		h.writeResponseApiPostShorten(w, http.StatusConflict, *url)
+		return
+	}
 	if errShorten != nil {
 		log.Printf("Cannot shorten url: %s", errShorten.Error())
 		http.Error(w, "Cannot shorten url", http.StatusInternalServerError)
 		return
 	}
 
-	absoluteURL, errAbsolute := h.Service.AbsoluteURL(*shortenedURL)
+	h.writeResponseApiPostShorten(w, http.StatusCreated, *shortenedURL)
+}
+
+func (h *URLShortenerHandler) writeResponseApiPostShorten(w http.ResponseWriter, status int, u model.ShortenedURL) {
+	absoluteURL, errAbsolute := h.Service.AbsoluteURL(u)
 	if errAbsolute != nil {
 		log.Printf("Cannot resolve absolute URL: %s", errAbsolute)
 		http.Error(w, "Cannot resolve absolute URL", http.StatusInternalServerError)
+		return
 	}
 	shortURLJson := apimodel.ShortURLJson{Result: absoluteURL.String()}
 
 	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(status)
 	enc := json.NewEncoder(w)
 	if errEnc := enc.Encode(shortURLJson); errEnc != nil {
 		log.Printf("Cannot write response: %v", errEnc)

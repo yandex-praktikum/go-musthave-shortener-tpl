@@ -32,6 +32,10 @@ func (s *Service) GetByID(id int) (*model.ShortenedURL, error) {
 	return s.Storage.GetByID(id)
 }
 
+func (s *Service) LookupURL(u url.URL) (*model.ShortenedURL, error) {
+	return s.Storage.LookupURL(u)
+}
+
 func (s *Service) GetUserURLs(userID int) ([]model.ShortenedURL, error) {
 	return s.Storage.ListByUserID(userID)
 }

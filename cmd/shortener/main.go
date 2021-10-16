@@ -22,12 +22,13 @@ import (
 )
 
 func main() {
+	log.SetFlags(log.Ltime | log.Lshortfile)
 	conf, errConf := config.Load()
 	if errConf != nil {
 		log.Fatalf("Cannot load config: %s", errConf.Error())
 	}
 
-	m, errMigrations := migrate.New("file://db/migrations", conf.DatabaseDSN)
+	m, errMigrations := migrate.New("file://../../db/migrations", conf.DatabaseDSN)
 	if errMigrations != nil {
 		log.Fatalf("Cannot init DB migrations: %s", errMigrations.Error())
 	}
