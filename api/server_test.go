@@ -76,7 +76,7 @@ func TestHandlePostApiShorten(t *testing.T) {
 
 func TestHandlePostShortenBatch(t *testing.T) {
 	rw := httptest.NewRecorder()
-	testLongURLBatchJson := fmt.Sprintf(`[
+	testLongURLBatchJSON := fmt.Sprintf(`[
 			{
 				"correlation_id": "abc",
 				"original_url": "%s"
@@ -85,7 +85,7 @@ func TestHandlePostShortenBatch(t *testing.T) {
 	req := httptest.NewRequest(
 		http.MethodPost,
 		"/api/shorten/batch",
-		bytes.NewBufferString(testLongURLBatchJson),
+		bytes.NewBufferString(testLongURLBatchJSON),
 	)
 	urlService := new(urlmocks.URLServiceMock)
 	idService := new(authmocks.IDServiceMock)
