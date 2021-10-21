@@ -22,12 +22,12 @@ type Authenticator struct {
 
 func (a *Authenticator) Authenticate(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		userID := a.ExtractUserID(r)
+		userID := a.extractUserID(r)
 		if userID == nil {
 			log.Printf("Signing up new user")
 
 			var errSignUp error
-			userID, errSignUp = a.SignUp(w)
+			userID, errSignUp = a.signUp(w)
 			if errSignUp != nil {
 				log.Printf("Cannot authenticate: %s", errSignUp.Error())
 				http.Error(w, "Cannot authenticate", http.StatusUnauthorized)
@@ -43,7 +43,7 @@ func (a *Authenticator) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-func (a *Authenticator) ExtractUserID(r *http.Request) *int {
+func (a *Authenticator) extractUserID(r *http.Request) *int {
 	cookie, errGetCookie := r.Cookie(AuthCookieName)
 	if errGetCookie != nil {
 		log.Printf("Cannot get authentication cookie: %s", errGetCookie.Error())
@@ -78,7 +78,7 @@ func (a *Authenticator) ExtractUserID(r *http.Request) *int {
 	return &sgn.ID
 }
 
-func (a *Authenticator) SignUp(w http.ResponseWriter) (*int, error) {
+func (a *Authenticator) signUp(w http.ResponseWriter) (*int, error) {
 	user, errSignUp := a.IDService.SignUp()
 	if errSignUp != nil {
 		return nil, fmt.Errorf("cannot sign up: %w", errSignUp)
