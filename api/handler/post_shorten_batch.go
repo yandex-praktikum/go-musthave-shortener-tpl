@@ -22,7 +22,7 @@ func (h *URLShortenerHandler) handlePostShortenBatch(w http.ResponseWriter, r *h
 	}
 
 	userID := userID(r)
-	shortURLs := make([]apimodel.ShortBatchURLJson, 0)
+	shortURLs := make([]apimodel.ShortBatchURLJson, 0, len(longURLs))
 	for _, longBatchURL := range longURLs {
 		longURL, errParse := url.Parse(longBatchURL.URL)
 		if errParse != nil {
