@@ -49,13 +49,13 @@ func main() {
 
 	go start(server)
 
-	sigint := make(chan os.Signal, 1)
-	signal.Notify(sigint, os.Interrupt)
-	<-sigint
+	awaitSigTerm()
+
 	if errShutdown := server.Shutdown(context.Background()); errShutdown != nil {
 		log.Fatalf("Could not gracefully stop the server: %s", errShutdown.Error())
 	}
-	log.Println("Server stopped.")
+
+	log.Println("Application stopped.")
 }
 
 func start(s *api.URLShortenerServer) {
@@ -63,6 +63,12 @@ func start(s *api.URLShortenerServer) {
 	if err != http.ErrServerClosed {
 		log.Fatalf("Cannot start the server: %v", err.Error())
 	}
+}
+
+func awaitSigTerm() {
+	sigint := make(chan os.Signal, 1)
+	signal.Notify(sigint, os.Interrupt)
+	<-sigint
 }
 
 func migrateDB(databaseURL string) error {
