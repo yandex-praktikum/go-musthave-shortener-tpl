@@ -24,9 +24,9 @@ func NewShortenerStorage(db *sql.DB) *PgShortenerStorage {
 func (s *PgShortenerStorage) GetByID(id int) (*model.ShortenedURL, error) {
 	row := s.QueryRow("select URLS_ID, URLS_ORIGINAL_URL, USERS_ID from URLS where URLS_ID = $1", id)
 
-	url, errMap := mapShortenedURL(row)
-	if errMap != nil {
-		return nil, fmt.Errorf("cannot get URL by id [%d]: %w", id, errMap)
+	url, err := mapShortenedURL(row)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get URL by id [%d]: %w", id, err)
 	}
 
 	return url, nil
@@ -35,9 +35,9 @@ func (s *PgShortenerStorage) GetByID(id int) (*model.ShortenedURL, error) {
 func (s *PgShortenerStorage) LookupURL(u url.URL) (*model.ShortenedURL, error) {
 	row := s.QueryRow("select URLS_ID, URLS_ORIGINAL_URL, USERS_ID from URLS where URLS_ORIGINAL_URL = $1", u.String())
 
-	url, errMap := mapShortenedURL(row)
-	if errMap != nil {
-		return nil, fmt.Errorf("cannot lookup URL [%s]: %w", u.String(), errMap)
+	url, err := mapShortenedURL(row)
+	if err != nil {
+		return nil, fmt.Errorf("cannot lookup URL [%s]: %w", u.String(), err)
 	}
 
 	return url, nil
@@ -46,21 +46,21 @@ func (s *PgShortenerStorage) LookupURL(u url.URL) (*model.ShortenedURL, error) {
 func (s *PgShortenerStorage) ListByUserID(userID int64) ([]model.ShortenedURL, error) {
 	result := make([]model.ShortenedURL, 0)
 
-	rows, errQuery := s.Query(`
+	rows, err := s.Query(`
 		select URLS_ID, URLS_ORIGINAL_URL, USERS_ID
 		from URLS
 		where USERS_ID = $1
 	`,
 		userID)
-	if errQuery != nil {
-		return result, fmt.Errorf("cannot select URLs for user [%d]: %w", userID, errQuery)
+	if err != nil {
+		return result, fmt.Errorf("cannot select URLs for user [%d]: %w", userID, err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		url, errMap := mapShortenedURL(rows)
-		if errMap != nil {
-			return result, fmt.Errorf("cannot map all urls from DB: %w", errMap)
+		url, err := mapShortenedURL(rows)
+		if err != nil {
+			return result, fmt.Errorf("cannot map all urls from DB: %w", err)
 		}
 
 		result = append(result, *url)
@@ -72,21 +72,21 @@ func (s *PgShortenerStorage) ListByUserID(userID int64) ([]model.ShortenedURL, e
 	return result, nil
 }
 
-func (s *PgShortenerStorage) Save(u model.URLToShorten) (*model.ShortenedURL, error) {
+func (s *PgShortenerStorage) SaveURL(u model.URLToShorten) (*model.ShortenedURL, error) {
 	row := s.QueryRow(`
 		insert into URLS (URLS_ORIGINAL_URL, USERS_ID) 
 		values($1, $2)
 		returning URLS_ID, URLS_ORIGINAL_URL, USERS_ID
 	`, u.LongURL.String(), u.UserID)
 
-	url, errMap := mapShortenedURL(row)
-	if errMap != nil {
+	url, err := mapShortenedURL(row)
+	if err != nil {
 		var dbErr *pgconn.PgError
-		if errors.As(errMap, &dbErr) && dbErr.Code == pgerrcode.UniqueViolation {
+		if errors.As(err, &dbErr) && dbErr.Code == pgerrcode.UniqueViolation {
 			log.Printf("Duplicate URL: %s", u.LongURL.String())
-			errMap = storage.ErrDuplicateURL
+			err = storage.ErrDuplicateURL
 		}
-		return nil, fmt.Errorf("cannot insert url: %w", errMap)
+		return nil, fmt.Errorf("cannot insert url: %w", err)
 	}
 
 	return url, nil
@@ -109,9 +109,9 @@ func mapShortenedURL(row scannable) (*model.ShortenedURL, error) {
 		return nil, fmt.Errorf("cannot scan url from DB results: %w", errScan)
 	}
 
-	longURL, errParse := url.Parse(longURLStr)
-	if errParse != nil {
-		return nil, fmt.Errorf("invalid URL [%s]: %w", longURLStr, errParse)
+	longURL, err := url.Parse(longURLStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid URL [%s]: %w", longURLStr, err)
 	}
 
 	shortenedURL := model.ShortenedURL{

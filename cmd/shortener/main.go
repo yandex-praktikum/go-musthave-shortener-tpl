@@ -59,25 +59,25 @@ func awaitTermination() {
 }
 
 func migrateDB(databaseURL string) error {
-	m, errMigrations := migrate.New("file://db/migrations", databaseURL)
-	if errMigrations != nil {
-		return fmt.Errorf("cannot init DB migrations: %w", errMigrations)
+	m, err := migrate.New("file://db/migrations", databaseURL)
+	if err != nil {
+		return fmt.Errorf("cannot init DB migrations: %w", err)
 	}
-	if errUp := m.Up(); errUp != nil && errUp != migrate.ErrNoChange {
-		return fmt.Errorf("cannot apply migrations: %w", errUp)
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("cannot apply migrations: %w", err)
 	}
 
 	return nil
 }
 
 func newDataSource(databaseURL string) (*sql.DB, error) {
-	db, errOpen := sql.Open("pgx", databaseURL)
-	if errOpen != nil {
-		return nil, fmt.Errorf("cannot connect to DB: %w", errOpen)
+	db, err := sql.Open("pgx", databaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("cannot connect to DB: %w", err)
 	}
 
-	if errPing := db.Ping(); errPing != nil {
-		return nil, fmt.Errorf("cannot verify that DB connection is alive: %w", errPing)
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("cannot verify that DB connection is alive: %w", err)
 	}
 
 	return db, nil

@@ -28,7 +28,7 @@ func (s *Service) SignUp() (*model.User, error) {
 	}
 
 	userToAdd := model.UserToAdd{Key: hex.EncodeToString(key)}
-	user, errAdd := s.Save(userToAdd)
+	user, errAdd := s.SaveUser(userToAdd)
 	if errAdd != nil {
 		return nil, fmt.Errorf("cannot save new user: %w", errAdd)
 	}

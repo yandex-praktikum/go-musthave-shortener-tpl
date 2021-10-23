@@ -86,9 +86,9 @@ func (a *requestAuth) extractUserID(r *http.Request) *int64 {
 }
 
 func (a *requestAuth) signUp(w http.ResponseWriter) (*int64, error) {
-	user, errSignUp := a.IDService.SignUp()
-	if errSignUp != nil {
-		return nil, fmt.Errorf("cannot sign up: %w", errSignUp)
+	user, err := a.IDService.SignUp()
+	if err != nil {
+		return nil, fmt.Errorf("cannot sign up: %w", err)
 	}
 
 	signedUserID, errSign := a.IDService.SignUserID(*user)

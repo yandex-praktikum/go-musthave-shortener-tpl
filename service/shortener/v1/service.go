@@ -19,9 +19,9 @@ func New(s storage.ShortenerStorage, u url.URL) *Service {
 }
 
 func (s *Service) ShortenURL(u model.URLToShorten) (*model.ShortenedURL, error) {
-	url, errSave := s.Storage.Save(u)
-	if errSave != nil {
-		return nil, fmt.Errorf("cannot shorten url: %w", errSave)
+	url, err := s.Storage.SaveURL(u)
+	if err != nil {
+		return nil, fmt.Errorf("cannot shorten url: %w", err)
 	}
 	log.Printf("Shortened: %s", url)
 
