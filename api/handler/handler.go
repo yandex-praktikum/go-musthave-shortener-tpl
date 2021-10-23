@@ -23,9 +23,8 @@ func New(shortenerService shortener.URLService, idService auth.IDService, baseUR
 		Service: shortenerService,
 	}
 
-	auth := middleware.Authenticator{IDService: idService}
 	h.Group(func(r chi.Router) {
-		r.Use(auth.Authenticate)
+		r.Use(middleware.Authenticator(idService))
 		r.Use(middleware.GzipDecompressor)
 		r.Use(middleware.GzipCompressor)
 		r.Post("/", h.handlePostLongURL)

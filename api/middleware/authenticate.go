@@ -16,34 +16,41 @@ const AuthCookieName = "USER-ID"
 
 type AuthContextKeyType struct{}
 
-type Authenticator struct {
+// Authenticator middleware authenticates a request
+// based on the signed cookie containing a user ID.
+// In case authentication has failed, it signs up a new user.
+func Authenticator(idService auth.IDService) func(http.Handler) http.Handler {
+	ra := requestAuth{idService}
+
+	return func(next http.Handler) http.Handler {
+		serveHTTP := func(w http.ResponseWriter, r *http.Request) {
+			userID := ra.extractUserID(r)
+			if userID == nil {
+				log.Printf("Signing up new user")
+
+				var errSignUp error
+				userID, errSignUp = ra.signUp(w)
+				if errSignUp != nil {
+					log.Printf("Cannot authenticate: %s", errSignUp.Error())
+					http.Error(w, "Cannot authenticate", http.StatusUnauthorized)
+					return
+				}
+			}
+
+			ctxWithUserID := context.WithValue(r.Context(), AuthContextKeyType{}, *userID)
+
+			next.ServeHTTP(w, r.WithContext(ctxWithUserID))
+		}
+
+		return http.HandlerFunc(serveHTTP)
+	}
+}
+
+type requestAuth struct {
 	IDService auth.IDService
 }
 
-func (a *Authenticator) Authenticate(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		userID := a.extractUserID(r)
-		if userID == nil {
-			log.Printf("Signing up new user")
-
-			var errSignUp error
-			userID, errSignUp = a.signUp(w)
-			if errSignUp != nil {
-				log.Printf("Cannot authenticate: %s", errSignUp.Error())
-				http.Error(w, "Cannot authenticate", http.StatusUnauthorized)
-				return
-			}
-		}
-
-		ctxWithUserID := context.WithValue(r.Context(), AuthContextKeyType{}, *userID)
-
-		next.ServeHTTP(w, r.WithContext(ctxWithUserID))
-	}
-
-	return http.HandlerFunc(fn)
-}
-
-func (a *Authenticator) extractUserID(r *http.Request) *int64 {
+func (a *requestAuth) extractUserID(r *http.Request) *int64 {
 	cookie, errGetCookie := r.Cookie(AuthCookieName)
 	if errGetCookie != nil {
 		log.Printf("Cannot get authentication cookie: %s", errGetCookie.Error())
@@ -78,7 +85,7 @@ func (a *Authenticator) extractUserID(r *http.Request) *int64 {
 	return &sgn.ID
 }
 
-func (a *Authenticator) signUp(w http.ResponseWriter) (*int64, error) {
+func (a *requestAuth) signUp(w http.ResponseWriter) (*int64, error) {
 	user, errSignUp := a.IDService.SignUp()
 	if errSignUp != nil {
 		return nil, fmt.Errorf("cannot sign up: %w", errSignUp)
