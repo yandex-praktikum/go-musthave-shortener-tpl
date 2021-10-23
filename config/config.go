@@ -12,6 +12,7 @@ package config
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/url"
 
 	"github.com/caarlos0/env/v6"
@@ -48,6 +49,13 @@ func overrideWithCliParams(config *Config) {
 			return fmt.Errorf("cannot parse [%s] as URL: %w", flagValue, errParse)
 		}
 		config.BaseURL = *baseURL
+
+		return nil
+	})
+	flag.Func("f", "DEPRECATED file storage path - not used in favour of DB", func(flagValue string) error {
+		if flagValue != "" {
+			log.Printf("Detected usage of DEPRECATED flag -f: [%s]", flagValue)
+		}
 
 		return nil
 	})
