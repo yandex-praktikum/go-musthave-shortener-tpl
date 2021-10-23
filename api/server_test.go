@@ -32,8 +32,7 @@ func TestHandlePostLongURL(t *testing.T) {
 	urlService.On("ShortenURL", urlToShorten).Return(&shortenedURL, nil)
 	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
 
-	idService := new(authmocks.IDServiceMock)
-	idService.On("SignUp").Return(&model.User{ID: 0, Key: ""}, nil)
+	idService := authmocks.NewIDServiceStub()
 
 	h := handler.New(urlService, idService, baseURL)
 
@@ -60,8 +59,7 @@ func TestHandlePostLongURLConflict(t *testing.T) {
 	urlService.On("LookupURL", longURL).Return(&shortenedURL, nil)
 	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
 
-	idService := new(authmocks.IDServiceMock)
-	idService.On("SignUp").Return(&model.User{ID: 0, Key: ""}, nil)
+	idService := authmocks.NewIDServiceStub()
 
 	h := handler.New(urlService, idService, baseURL)
 
@@ -85,14 +83,13 @@ func TestHandlePostApiShorten(t *testing.T) {
 		bytes.NewBufferString(testLongURLJson),
 	)
 	urlService := new(urlmocks.URLServiceMock)
-	idService := new(authmocks.IDServiceMock)
+	idService := authmocks.NewIDServiceStub()
 	urlToShorten := model.NewURLToShorten(0, longURL)
 	shortenedURL := model.NewShortenedURL(0, 123, longURL)
 	absoluteShortURL, _ := url.Parse("http://localhost:8080/123")
 	h := handler.New(urlService, idService, baseURL)
 	urlService.On("ShortenURL", urlToShorten).Return(&shortenedURL, nil)
 	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
-	idService.On("SignUp").Return(&model.User{ID: 0, Key: ""}, nil)
 
 	h.ServeHTTP(rw, req)
 
@@ -124,8 +121,7 @@ func TestHandlePostApiShortenConflict(t *testing.T) {
 	urlService.On("LookupURL", longURL).Return(&shortenedURL, nil)
 	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
 
-	idService := new(authmocks.IDServiceMock)
-	idService.On("SignUp").Return(&model.User{ID: 0, Key: ""}, nil)
+	idService := authmocks.NewIDServiceStub()
 
 	h := handler.New(urlService, idService, baseURL)
 
@@ -155,14 +151,13 @@ func TestHandlePostShortenBatch(t *testing.T) {
 		bytes.NewBufferString(testLongURLBatchJSON),
 	)
 	urlService := new(urlmocks.URLServiceMock)
-	idService := new(authmocks.IDServiceMock)
+	idService := authmocks.NewIDServiceStub()
 	urlToShorten := model.NewURLToShorten(0, longURL)
 	shortenedURL := model.NewShortenedURL(0, 123, longURL)
 	absoluteShortURL, _ := url.Parse("http://localhost:8080/123")
 	h := handler.New(urlService, idService, baseURL)
 	urlService.On("ShortenURL", urlToShorten).Return(&shortenedURL, nil)
 	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
-	idService.On("SignUp").Return(&model.User{ID: 0, Key: ""}, nil)
 
 	h.ServeHTTP(rw, req)
 
@@ -185,11 +180,10 @@ func TestHandleGetShortUrl(t *testing.T) {
 	rw := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/123", nil)
 	urlService := new(urlmocks.URLServiceMock)
-	idService := new(authmocks.IDServiceMock)
+	idService := authmocks.NewIDServiceStub()
 	shortenedURL := model.NewShortenedURL(0, 123, longURL)
 	h := handler.New(urlService, idService, baseURL)
 	urlService.On("GetByID", 123).Return(&shortenedURL, nil)
-	idService.On("SignUp").Return(&model.User{ID: 0, Key: ""}, nil)
 
 	h.ServeHTTP(rw, req)
 
@@ -203,10 +197,9 @@ func TestHandleGetShortUrlNotFound(t *testing.T) {
 	rw := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/123", nil)
 	urlService := new(urlmocks.URLServiceMock)
-	idService := new(authmocks.IDServiceMock)
+	idService := authmocks.NewIDServiceStub()
 	h := handler.New(urlService, idService, baseURL)
 	urlService.On("GetByID", 123).Return(nil, nil)
-	idService.On("SignUp").Return(&model.User{ID: 0, Key: ""}, nil)
 
 	h.ServeHTTP(rw, req)
 

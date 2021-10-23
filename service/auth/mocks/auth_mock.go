@@ -20,3 +20,9 @@ func (m *IDServiceMock) Validate(sgn model.SignedUserID) error {
 
 	return args.Error(1)
 }
+
+func (m *IDServiceMock) SignUserID(u model.User) (*model.SignedUserID, error) {
+	args := m.Called()
+
+	return args.Get(0).(*model.SignedUserID), args.Error(1)
+}

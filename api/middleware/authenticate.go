@@ -91,7 +91,7 @@ func (a *requestAuth) signUp(w http.ResponseWriter) (*int64, error) {
 		return nil, fmt.Errorf("cannot sign up: %w", errSignUp)
 	}
 
-	signedUserID, errSign := auth.SignUserID(*user)
+	signedUserID, errSign := a.IDService.SignUserID(*user)
 	if errSign != nil {
 		return nil, fmt.Errorf("cannot sign user id: %w", errSign)
 	}
