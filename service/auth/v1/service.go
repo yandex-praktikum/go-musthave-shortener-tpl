@@ -47,8 +47,8 @@ func (s *Service) SignUserID(u model.User) (*model.SignedUserID, error) {
 	hmac := h.Sum(nil)
 
 	signedUserID := model.SignedUserID{
-		ID:   u.ID,
-		HMAC: hex.EncodeToString(hmac),
+		ID:        u.ID,
+		Signature: hex.EncodeToString(hmac),
 	}
 
 	return &signedUserID, nil
@@ -70,14 +70,14 @@ func (s *Service) Validate(sgn model.SignedUserID) error {
 		return fmt.Errorf("cannot get signature for user [%d]: %w", u.ID, errSign)
 	}
 
-	sgnHMAC, errSgn := hex.DecodeString(sgn.HMAC)
+	sgnHMAC, errSgn := hex.DecodeString(sgn.Signature)
 	if errSgn != nil {
-		return fmt.Errorf("invalid signed user id HMAC [%s]: %w", sgn.HMAC, errSgn)
+		return fmt.Errorf("invalid signed user id HMAC [%s]: %w", sgn.Signature, errSgn)
 	}
 
-	canonicalHMAC, errCanonical := hex.DecodeString(canonicalS.HMAC)
+	canonicalHMAC, errCanonical := hex.DecodeString(canonicalS.Signature)
 	if errCanonical != nil {
-		return fmt.Errorf("invalid canonical user HMAC [%s]: %w", canonicalS.HMAC, errCanonical)
+		return fmt.Errorf("invalid canonical user HMAC [%s]: %w", canonicalS.Signature, errCanonical)
 	}
 
 	if !hmac.Equal(canonicalHMAC, sgnHMAC) {

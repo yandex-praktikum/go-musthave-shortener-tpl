@@ -73,8 +73,8 @@ func (a *requestAuth) extractUserID(r *http.Request) *int64 {
 	}
 
 	sgn := model.SignedUserID{
-		ID:   userID,
-		HMAC: hmac,
+		ID:        userID,
+		Signature: hmac,
 	}
 
 	if invalid := a.IDService.Validate(sgn); invalid != nil {
@@ -96,7 +96,7 @@ func (a *requestAuth) signUp(w http.ResponseWriter) (*int64, error) {
 		return nil, fmt.Errorf("cannot sign user id: %w", errSign)
 	}
 
-	v := fmt.Sprintf("%d|%s", signedUserID.ID, signedUserID.HMAC)
+	v := fmt.Sprintf("%d|%s", signedUserID.ID, signedUserID.Signature)
 	c := http.Cookie{
 		Name:  AuthCookieName,
 		Value: v,

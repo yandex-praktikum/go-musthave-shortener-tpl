@@ -18,7 +18,7 @@ func (m *IDServiceStub) Validate(sgn model.SignedUserID) error {
 
 func (m *IDServiceStub) SignUserID(u model.User) (*model.SignedUserID, error) {
 	return &model.SignedUserID{
-		ID:   0,
-		HMAC: "bb0cb0e08a30cbcbbb4d1cc8ce2bed4dff036f49894ef8b1e0eba1909368ee4b",
+		ID:        0,
+		Signature: "bb0cb0e08a30cbcbbb4d1cc8ce2bed4dff036f49894ef8b1e0eba1909368ee4b",
 	}, nil
 }
