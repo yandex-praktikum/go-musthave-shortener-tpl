@@ -43,7 +43,7 @@ func (s *PgShortenerStorage) LookupURL(u url.URL) (*model.ShortenedURL, error) {
 	return url, nil
 }
 
-func (s *PgShortenerStorage) ListByUserID(userID int) ([]model.ShortenedURL, error) {
+func (s *PgShortenerStorage) ListByUserID(userID int64) ([]model.ShortenedURL, error) {
 	result := make([]model.ShortenedURL, 0)
 
 	rows, errQuery := s.Query(`
@@ -97,7 +97,8 @@ type scannable interface {
 }
 
 func mapShortenedURL(row scannable) (*model.ShortenedURL, error) {
-	var id, userID int
+	var id int
+	var userID int64
 	var longURLStr string
 
 	errScan := row.Scan(&id, &longURLStr, &userID)

@@ -1,7 +1,7 @@
 package model
 
 type SignedUserID struct {
-	ID   int
+	ID   int64
 	HMAC string
 }
 
@@ -10,6 +10,6 @@ type UserToAdd struct {
 }
 
 type User struct {
-	ID  int
+	ID  int64
 	Key string
 }

@@ -43,7 +43,7 @@ func (a *Authenticator) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-func (a *Authenticator) extractUserID(r *http.Request) *int {
+func (a *Authenticator) extractUserID(r *http.Request) *int64 {
 	cookie, errGetCookie := r.Cookie(AuthCookieName)
 	if errGetCookie != nil {
 		log.Printf("Cannot get authentication cookie: %s", errGetCookie.Error())
@@ -59,7 +59,7 @@ func (a *Authenticator) extractUserID(r *http.Request) *int {
 	userIDStr := parts[0]
 	hmac := parts[1]
 
-	userID, errParseID := strconv.Atoi(userIDStr)
+	userID, errParseID := strconv.ParseInt(userIDStr, 10, 64)
 	if errParseID != nil {
 		log.Printf("Cannot parse user ID [%s]", userIDStr)
 		return nil
@@ -78,7 +78,7 @@ func (a *Authenticator) extractUserID(r *http.Request) *int {
 	return &sgn.ID
 }
 
-func (a *Authenticator) signUp(w http.ResponseWriter) (*int, error) {
+func (a *Authenticator) signUp(w http.ResponseWriter) (*int64, error) {
 	user, errSignUp := a.IDService.SignUp()
 	if errSignUp != nil {
 		return nil, fmt.Errorf("cannot sign up: %w", errSignUp)

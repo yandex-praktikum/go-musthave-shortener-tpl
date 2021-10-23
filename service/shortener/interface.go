@@ -19,7 +19,7 @@ type URLService interface {
 	LookupURL(u url.URL) (*model.ShortenedURL, error)
 
 	// GetUserURLs
-	GetUserURLs(userID int) ([]model.ShortenedURL, error)
+	GetUserURLs(userID int64) ([]model.ShortenedURL, error)
 
 	// AbsoluteURL resolves a short URL with regards to base URL
 	AbsoluteURL(u model.ShortenedURL) (*url.URL, error)

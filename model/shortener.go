@@ -7,11 +7,11 @@ import (
 
 // URLToShorten represents an intent and input data to shorten a long URL
 type URLToShorten struct {
-	UserID  int
+	UserID  int64
 	LongURL url.URL
 }
 
-func NewURLToShorten(userID int, u url.URL) URLToShorten {
+func NewURLToShorten(userID int64, u url.URL) URLToShorten {
 	return URLToShorten{
 		UserID:  userID,
 		LongURL: u,
@@ -20,12 +20,12 @@ func NewURLToShorten(userID int, u url.URL) URLToShorten {
 
 // ShortenedURL represents a successfully shortened and stored URL
 type ShortenedURL struct {
-	UserID  int
+	UserID  int64
 	ID      int
 	LongURL url.URL
 }
 
-func NewShortenedURL(userID int, id int, u url.URL) ShortenedURL {
+func NewShortenedURL(userID int64, id int, u url.URL) ShortenedURL {
 	return ShortenedURL{
 		UserID:  userID,
 		ID:      id,

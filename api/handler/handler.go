@@ -42,6 +42,6 @@ func New(shortenerService shortener.URLService, idService auth.IDService, baseUR
 	return h
 }
 
-func userID(r *http.Request) int {
-	return r.Context().Value(middleware.AuthContextKeyType{}).(int)
+func userID(r *http.Request) int64 {
+	return r.Context().Value(middleware.AuthContextKeyType{}).(int64)
 }

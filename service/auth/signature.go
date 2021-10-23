@@ -18,7 +18,7 @@ func SignUserID(u model.User) (*model.SignedUserID, error) {
 	}
 
 	h := hmac.New(sha256.New, key)
-	h.Write([]byte(strconv.Itoa(u.ID)))
+	h.Write([]byte(strconv.FormatInt(u.ID, 10)))
 	hmac := h.Sum(nil)
 
 	signedUserID := model.SignedUserID{

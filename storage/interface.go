@@ -18,7 +18,7 @@ type ShortenerStorage interface {
 	LookupURL(u url.URL) (*model.ShortenedURL, error)
 
 	// ListByUserID returns all URLs shortened by the specified user.
-	ListByUserID(userID int) ([]model.ShortenedURL, error)
+	ListByUserID(userID int64) ([]model.ShortenedURL, error)
 
 	// Save persists a shortened URL. It is responsible for generating ID.
 	Save(model.URLToShorten) (*model.ShortenedURL, error)
@@ -30,7 +30,7 @@ var ErrDuplicateURL = errors.New("URL already shortened")
 // authentication-related staff.
 type AuthStorage interface {
 	// GetByID looks-up an existing user
-	GetByID(id int) (*model.User, error)
+	GetByID(id int64) (*model.User, error)
 
 	// Save adds a new user. This method is responsible for generation
 	// of a user ID.
