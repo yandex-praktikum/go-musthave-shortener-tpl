@@ -23,17 +23,14 @@ import (
 
 func main() {
 	log.SetFlags(log.Ltime | log.Lshortfile)
+
 	conf, errConf := config.Load()
 	if errConf != nil {
 		log.Fatalf("Cannot load config: %s", errConf.Error())
 	}
 
-	m, errMigrations := migrate.New("file://db/migrations", conf.DatabaseDSN)
-	if errMigrations != nil {
-		log.Fatalf("Cannot init DB migrations: %s", errMigrations.Error())
-	}
-	if errUp := m.Up(); errUp != nil && errUp != migrate.ErrNoChange {
-		log.Fatalf("Cannot migrate DB: %s", errUp.Error())
+	if errMigrate := migrateDB(conf.DatabaseDSN); errMigrate != nil {
+		log.Fatalf("Cannot migrate DB: %s", errMigrate.Error())
 	}
 
 	db, errDB := newDataSource(conf.DatabaseDSN)
@@ -66,6 +63,18 @@ func start(s *api.URLShortenerServer) {
 	if err != http.ErrServerClosed {
 		log.Fatalf("Cannot start the server: %v", err.Error())
 	}
+}
+
+func migrateDB(databaseURL string) error {
+	m, errMigrations := migrate.New("file://db/migrations", databaseURL)
+	if errMigrations != nil {
+		return fmt.Errorf("cannot init DB migrations: %w", errMigrations)
+	}
+	if errUp := m.Up(); errUp != nil && errUp != migrate.ErrNoChange {
+		return fmt.Errorf("cannot apply migrations: %w", errUp)
+	}
+
+	return nil
 }
 
 func newDataSource(databaseURL string) (*sql.DB, error) {
