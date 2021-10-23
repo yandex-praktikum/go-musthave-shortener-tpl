@@ -1,9 +1,18 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 )
+
+// ErrDuplicateURL is returned when trying to shorten
+// already shortened URL
+var ErrDuplicateURL = errors.New("URL already shortened")
+
+// ErrURLNotFound is returned when a URL with requested properties
+// does not exist
+var ErrURLNotFound = errors.New("URL not found")
 
 // URLToShorten represents an intent and input data to shorten a long URL
 type URLToShorten struct {

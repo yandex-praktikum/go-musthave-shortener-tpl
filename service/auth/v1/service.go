@@ -33,7 +33,7 @@ func (s *Service) SignUp() (*model.User, error) {
 		return nil, fmt.Errorf("cannot save new user: %w", errAdd)
 	}
 
-	return user, nil
+	return &user, nil
 }
 
 func (s *Service) SignUserID(u model.User) (*model.SignedUserID, error) {

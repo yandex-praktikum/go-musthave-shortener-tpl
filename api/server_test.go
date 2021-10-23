@@ -14,7 +14,6 @@ import (
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
 	authmocks "github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/auth/mocks"
 	urlmocks "github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/shortener/mocks"
-	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage"
 	"github.com/stretchr/testify/require"
 )
 
@@ -55,7 +54,7 @@ func TestHandlePostLongURLConflict(t *testing.T) {
 	absoluteShortURL, _ := url.Parse("http://localhost:8080/123")
 
 	urlService := new(urlmocks.URLServiceMock)
-	urlService.On("ShortenURL", urlToShorten).Return(nil, storage.ErrDuplicateURL)
+	urlService.On("ShortenURL", urlToShorten).Return(nil, model.ErrDuplicateURL)
 	urlService.On("LookupURL", longURL).Return(&shortenedURL, nil)
 	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
 
@@ -117,7 +116,7 @@ func TestHandlePostApiShortenConflict(t *testing.T) {
 	absoluteShortURL, _ := url.Parse("http://localhost:8080/123")
 
 	urlService := new(urlmocks.URLServiceMock)
-	urlService.On("ShortenURL", urlToShorten).Return(nil, storage.ErrDuplicateURL)
+	urlService.On("ShortenURL", urlToShorten).Return(nil, model.ErrDuplicateURL)
 	urlService.On("LookupURL", longURL).Return(&shortenedURL, nil)
 	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
 
@@ -199,7 +198,7 @@ func TestHandleGetShortUrlNotFound(t *testing.T) {
 	urlService := new(urlmocks.URLServiceMock)
 	idService := authmocks.NewIDServiceStub()
 	h := handler.New(urlService, idService, baseURL)
-	urlService.On("GetURLByID", 123).Return(nil, nil)
+	urlService.On("GetURLByID", 123).Return(nil, model.ErrURLNotFound)
 
 	h.ServeHTTP(rw, req)
 

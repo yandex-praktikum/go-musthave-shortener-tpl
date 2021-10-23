@@ -26,13 +26,13 @@ func (s *PgAuthStorage) GetUserByID(id int64) (*model.User, error) {
 	return &user, nil
 }
 
-func (s *PgAuthStorage) SaveUser(u model.UserToAdd) (*model.User, error) {
+func (s *PgAuthStorage) SaveUser(u model.UserToAdd) (model.User, error) {
 	row := s.QueryRow("insert into USERS (USERS_SIGN_KEY) values($1) returning USERS_ID, USERS_SIGN_KEY", u.Key)
 	user := model.User{}
 
 	if err := row.Scan(&user.ID, &user.Key); err != nil {
-		return nil, fmt.Errorf("cannot insert user: %w", err)
+		return user, fmt.Errorf("cannot insert user: %w", err)
 	}
 
-	return &user, nil
+	return user, nil
 }

@@ -25,7 +25,7 @@ func (s *Service) ShortenURL(u model.URLToShorten) (*model.ShortenedURL, error) 
 	}
 	log.Printf("Shortened: %s", url)
 
-	return url, nil
+	return &url, nil
 }
 
 func (s *Service) GetURLByID(id int) (*model.ShortenedURL, error) {

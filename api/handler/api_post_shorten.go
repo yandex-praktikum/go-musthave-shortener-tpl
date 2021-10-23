@@ -10,7 +10,6 @@ import (
 
 	apimodel "github.com/im-tollu/yandex-go-musthave-shortener-tpl/api/apiModel"
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
-	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage"
 )
 
 func (h *URLShortenerHandler) handlePostAPIShorten(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +33,7 @@ func (h *URLShortenerHandler) handlePostAPIShorten(w http.ResponseWriter, r *htt
 	userID := userID(r)
 	u := model.NewURLToShorten(userID, *longURL)
 	shortenedURL, errShorten := h.Service.ShortenURL(u)
-	if errors.Is(errShorten, storage.ErrDuplicateURL) {
+	if errors.Is(errShorten, model.ErrDuplicateURL) {
 		url, errGet := h.Service.LookupURL(u.LongURL)
 		if errGet != nil {
 			log.Printf("Duplicate URL, but cannot find [%s]: %s", u.LongURL.String(), errGet.Error())

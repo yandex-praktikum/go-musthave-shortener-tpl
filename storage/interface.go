@@ -2,7 +2,6 @@
 package storage
 
 import (
-	"errors"
 	"net/url"
 
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
@@ -21,10 +20,8 @@ type ShortenerStorage interface {
 	ListByUserID(userID int64) ([]model.ShortenedURL, error)
 
 	// SaveURL persists a shortened URL. It is responsible for generating ID.
-	SaveURL(model.URLToShorten) (*model.ShortenedURL, error)
+	SaveURL(model.URLToShorten) (model.ShortenedURL, error)
 }
-
-var ErrDuplicateURL = errors.New("URL already shortened")
 
 // AuthStorage provides methods to persist and retrieve
 // authentication-related staff.
@@ -34,5 +31,5 @@ type AuthStorage interface {
 
 	// SaveUser adds a new user. This method is responsible for generation
 	// of a user ID.
-	SaveUser(u model.UserToAdd) (*model.User, error)
+	SaveUser(u model.UserToAdd) (model.User, error)
 }
