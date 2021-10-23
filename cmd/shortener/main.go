@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 
@@ -45,27 +44,15 @@ func main() {
 	shortenerSrv := shortener.New(shortenerStorage, conf.BaseURL)
 
 	server := api.New(shortenerSrv, authSrv, conf.ServerAddress, conf.BaseURL)
-	log.Println("Starting server...")
 
-	go start(server)
-
-	awaitSigTerm()
+	awaitTermination()
 
 	if errShutdown := server.Shutdown(context.Background()); errShutdown != nil {
 		log.Fatalf("Could not gracefully stop the server: %s", errShutdown.Error())
 	}
-
-	log.Println("Application stopped.")
 }
 
-func start(s *api.URLShortenerServer) {
-	err := s.ListenAndServe()
-	if err != http.ErrServerClosed {
-		log.Fatalf("Cannot start the server: %v", err.Error())
-	}
-}
-
-func awaitSigTerm() {
+func awaitTermination() {
 	sigint := make(chan os.Signal, 1)
 	signal.Notify(sigint, os.Interrupt)
 	<-sigint

@@ -1,6 +1,8 @@
 package api
 
 import (
+	"context"
+	"log"
 	"net/http"
 	"net/url"
 
@@ -26,5 +28,24 @@ func New(
 		},
 	}
 
+	log.Println("Starting server...")
+
+	go func() {
+		err := server.ListenAndServe()
+		if err != http.ErrServerClosed {
+			log.Printf("Server failed: %s", err.Error())
+		}
+	}()
+
 	return &server
+}
+
+func (s *URLShortenerServer) Shutdown(ctx context.Context) error {
+	if err := s.Server.Shutdown(ctx); err != nil {
+		return err
+	}
+
+	log.Println("Server stopped.")
+
+	return nil
 }
