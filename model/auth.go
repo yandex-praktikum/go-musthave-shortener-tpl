@@ -11,5 +11,5 @@ type UserToAdd struct {
 
 type User struct {
 	ID  int64
-	Key string
+	Key []byte
 }

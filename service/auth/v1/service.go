@@ -40,12 +40,7 @@ func (s *Service) SignUp() (*model.User, error) {
 }
 
 func (s *Service) SignUserID(u model.User) (*model.SignedUserID, error) {
-	key, errHex := hex.DecodeString(u.Key)
-	if errHex != nil {
-		return nil, fmt.Errorf("invalid key [%s]: %w", u.Key, errHex)
-	}
-
-	h := hmac.New(sha256.New, key)
+	h := hmac.New(sha256.New, u.Key)
 	h.Write([]byte(strconv.FormatInt(u.ID, 10)))
 	hmac := h.Sum(nil)
 

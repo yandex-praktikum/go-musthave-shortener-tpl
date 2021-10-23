@@ -9,7 +9,7 @@ func NewIDServiceStub() *IDServiceStub {
 }
 
 func (m *IDServiceStub) SignUp() (*model.User, error) {
-	return &model.User{ID: 0, Key: ""}, nil
+	return &model.User{ID: 0, Key: make([]byte, 0)}, nil
 }
 
 func (m *IDServiceStub) Validate(sgn model.SignedUserID) error {
