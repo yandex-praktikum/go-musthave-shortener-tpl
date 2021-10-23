@@ -15,7 +15,7 @@ func NewAuthStorage(db *sql.DB) *PgAuthStorage {
 	return &PgAuthStorage{db}
 }
 
-func (s *PgAuthStorage) GetByID(id int64) (*model.User, error) {
+func (s *PgAuthStorage) GetUserByID(id int64) (*model.User, error) {
 	row := s.QueryRow("select USERS_ID, USERS_SIGN_KEY from USERS where USERS_ID = $1", id)
 	user := model.User{}
 

@@ -9,7 +9,7 @@ type StorageMock struct {
 	mock.Mock
 }
 
-func (m *StorageMock) GetByID(id int) *model.ShortenedURL {
+func (m *StorageMock) GetURLByID(id int) *model.ShortenedURL {
 	args := m.Called(id)
 
 	return args.Get(0).(*model.ShortenedURL)

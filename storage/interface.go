@@ -11,8 +11,8 @@ import (
 // ShortenerStorage provides methods to persist and retrieve shortened URLs
 // of a single request.
 type ShortenerStorage interface {
-	// GetByID looks-up for a previously shortened URL.
-	GetByID(id int) (*model.ShortenedURL, error)
+	// GetURLByID looks-up for a previously shortened URL.
+	GetURLByID(id int) (*model.ShortenedURL, error)
 
 	// LookupURL does a search of a shortened URL by long URL.
 	LookupURL(u url.URL) (*model.ShortenedURL, error)
@@ -29,8 +29,8 @@ var ErrDuplicateURL = errors.New("URL already shortened")
 // AuthStorage provides methods to persist and retrieve
 // authentication-related staff.
 type AuthStorage interface {
-	// GetByID looks-up an existing user
-	GetByID(id int64) (*model.User, error)
+	// GetUserByID looks-up an existing user
+	GetUserByID(id int64) (*model.User, error)
 
 	// SaveUser adds a new user. This method is responsible for generation
 	// of a user ID.

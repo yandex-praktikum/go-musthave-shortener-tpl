@@ -183,7 +183,7 @@ func TestHandleGetShortUrl(t *testing.T) {
 	idService := authmocks.NewIDServiceStub()
 	shortenedURL := model.NewShortenedURL(0, 123, longURL)
 	h := handler.New(urlService, idService, baseURL)
-	urlService.On("GetByID", 123).Return(&shortenedURL, nil)
+	urlService.On("GetURLByID", 123).Return(&shortenedURL, nil)
 
 	h.ServeHTTP(rw, req)
 
@@ -199,7 +199,7 @@ func TestHandleGetShortUrlNotFound(t *testing.T) {
 	urlService := new(urlmocks.URLServiceMock)
 	idService := authmocks.NewIDServiceStub()
 	h := handler.New(urlService, idService, baseURL)
-	urlService.On("GetByID", 123).Return(nil, nil)
+	urlService.On("GetURLByID", 123).Return(nil, nil)
 
 	h.ServeHTTP(rw, req)
 

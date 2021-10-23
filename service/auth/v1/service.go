@@ -55,7 +55,7 @@ func (s *Service) SignUserID(u model.User) (*model.SignedUserID, error) {
 }
 
 func (s *Service) Validate(sgn model.SignedUserID) error {
-	u, errGet := s.GetByID(sgn.ID)
+	u, errGet := s.GetUserByID(sgn.ID)
 	if errGet != nil {
 		return fmt.Errorf("cannot validate signature: %w", errGet)
 	}

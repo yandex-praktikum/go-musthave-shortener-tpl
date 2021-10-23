@@ -28,8 +28,8 @@ func (s *Service) ShortenURL(u model.URLToShorten) (*model.ShortenedURL, error) 
 	return url, nil
 }
 
-func (s *Service) GetByID(id int) (*model.ShortenedURL, error) {
-	return s.Storage.GetByID(id)
+func (s *Service) GetURLByID(id int) (*model.ShortenedURL, error) {
+	return s.Storage.GetURLByID(id)
 }
 
 func (s *Service) LookupURL(u url.URL) (*model.ShortenedURL, error) {

@@ -21,7 +21,7 @@ func NewShortenerStorage(db *sql.DB) *PgShortenerStorage {
 	return &PgShortenerStorage{db}
 }
 
-func (s *PgShortenerStorage) GetByID(id int) (*model.ShortenedURL, error) {
+func (s *PgShortenerStorage) GetURLByID(id int) (*model.ShortenedURL, error) {
 	row := s.QueryRow("select URLS_ID, URLS_ORIGINAL_URL, USERS_ID from URLS where URLS_ID = $1", id)
 
 	url, err := mapShortenedURL(row)

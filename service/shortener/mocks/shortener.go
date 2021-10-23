@@ -21,7 +21,7 @@ func (m *URLServiceMock) ShortenURL(u model.URLToShorten) (*model.ShortenedURL, 
 	return args.Get(0).(*model.ShortenedURL), args.Error(1)
 }
 
-func (m *URLServiceMock) GetByID(id int) (*model.ShortenedURL, error) {
+func (m *URLServiceMock) GetURLByID(id int) (*model.ShortenedURL, error) {
 	args := m.Called(id)
 
 	if args.Get(0) == nil {
