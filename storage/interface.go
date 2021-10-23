@@ -1,29 +1,39 @@
 // Package storage provides a persistent storage for the service
 package storage
 
-import "github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
+import (
+	"net/url"
 
-// Storage provides methods to perform actions in context
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
+)
+
+// ShortenerStorage provides methods to persist and retrieve shortened URLs
 // of a single request.
-type Storage interface {
-	// GetByID looks-up for a previously shortened URL.
-	GetByID(id int) *model.ShortenedURL
+type ShortenerStorage interface {
+	// GetURLByID looks-up for a previously shortened URL.
+	GetURLByID(id int) (*model.ShortenedURL, error)
 
-	// Save persists a shortened URL. It is responsible for generating ID.
-	Save(model.URLToShorten) model.ShortenedURL
+	// LookupURL does a search of a shortened URL by long URL.
+	LookupURL(u url.URL) (*model.ShortenedURL, error)
+
+	// ListByUserID returns all URLs shortened by the specified user.
+	ListByUserID(userID int64) ([]model.ShortenedURL, error)
+
+	// SaveURL persists a shortened URL. It is responsible for generating ID.
+	SaveURL(model.URLToShorten) (model.ShortenedURL, error)
 }
 
-// BulkStorage is used to backup and restore the server state
-// It extends Storage for convenience because usually it is the same
-// instance.
-type BulkStorage interface {
-	Storage
+// AuthStorage provides methods to persist and retrieve
+// authentication-related staff.
+type AuthStorage interface {
+	// GetUserByID looks-up an existing user
+	GetUserByID(id int64) (*model.User, error)
 
-	// GetAll returns all shortened URLs.
-	GetAll() []model.ShortenedURL
+	// SaveUser adds a new user. This method is responsible for generation
+	// of a user ID.
+	SaveUser(u model.UserToAdd) (model.User, error)
+}
 
-	// Load persists a shortened URL. It is different from Storage.Save
-	// in that is does not generate an ID, but takes whatever comes
-	// with the URL.
-	Load(u model.ShortenedURL)
+type Pinger interface {
+	Ping() error
 }

@@ -12,6 +12,7 @@ package config
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/url"
 
 	"github.com/caarlos0/env/v6"
@@ -20,7 +21,7 @@ import (
 type Config struct {
 	ServerAddress string  `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
 	BaseURL       url.URL `env:"BASE_URL" envDefault:"http://localhost:8080"`
-	StorageFile   string  `env:"FILE_STORAGE_PATH" envDefault:"urlStorage.gob"`
+	DatabaseDSN   string  `env:"DATABASE_DSN" envDefault:"postgres://postgres:postgres@localhost:5432/praktikum?sslmode=disable"`
 }
 
 func Load() (*Config, error) {
@@ -37,7 +38,7 @@ func Load() (*Config, error) {
 
 func overrideWithCliParams(config *Config) {
 	flag.StringVar(&config.ServerAddress, "a", config.ServerAddress, "Server address")
-	flag.StringVar(&config.StorageFile, "f", config.StorageFile, "File storage path")
+	flag.StringVar(&config.DatabaseDSN, "d", config.DatabaseDSN, "Database connection string")
 	flag.Func("b", "Base URL", func(flagValue string) error {
 		if flagValue == "" {
 			return nil
@@ -48,6 +49,13 @@ func overrideWithCliParams(config *Config) {
 			return fmt.Errorf("cannot parse [%s] as URL: %w", flagValue, errParse)
 		}
 		config.BaseURL = *baseURL
+
+		return nil
+	})
+	flag.Func("f", "DEPRECATED file storage path - not used in favour of DB", func(flagValue string) error {
+		if flagValue != "" {
+			log.Printf("Detected usage of DEPRECATED flag -f: [%s]", flagValue)
+		}
 
 		return nil
 	})
