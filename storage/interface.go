@@ -33,3 +33,7 @@ type AuthStorage interface {
 	// of a user ID.
 	SaveUser(u model.UserToAdd) (model.User, error)
 }
+
+type Pinger interface {
+	Ping() error
+}

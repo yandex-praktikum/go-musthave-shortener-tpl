@@ -14,6 +14,7 @@ import (
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
 	authmocks "github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/auth/mocks"
 	urlmocks "github.com/im-tollu/yandex-go-musthave-shortener-tpl/service/shortener/mocks"
+	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/storage/mocks"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,8 +33,9 @@ func TestHandlePostLongURL(t *testing.T) {
 	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
 
 	idService := authmocks.NewIDServiceStub()
+	pinger := mocks.NewPingerStub()
 
-	h := handler.New(urlService, idService, baseURL)
+	h := handler.New(urlService, idService, pinger, baseURL)
 
 	h.ServeHTTP(rw, req)
 
@@ -59,8 +61,9 @@ func TestHandlePostLongURLConflict(t *testing.T) {
 	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
 
 	idService := authmocks.NewIDServiceStub()
+	pinger := mocks.NewPingerStub()
 
-	h := handler.New(urlService, idService, baseURL)
+	h := handler.New(urlService, idService, pinger, baseURL)
 
 	h.ServeHTTP(rw, req)
 
@@ -83,10 +86,11 @@ func TestHandlePostApiShorten(t *testing.T) {
 	)
 	urlService := new(urlmocks.URLServiceMock)
 	idService := authmocks.NewIDServiceStub()
+	pinger := mocks.NewPingerStub()
 	urlToShorten := model.NewURLToShorten(0, longURL)
 	shortenedURL := model.NewShortenedURL(0, 123, longURL)
 	absoluteShortURL, _ := url.Parse("http://localhost:8080/123")
-	h := handler.New(urlService, idService, baseURL)
+	h := handler.New(urlService, idService, pinger, baseURL)
 	urlService.On("ShortenURL", urlToShorten).Return(&shortenedURL, nil)
 	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
 
@@ -121,8 +125,9 @@ func TestHandlePostApiShortenConflict(t *testing.T) {
 	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
 
 	idService := authmocks.NewIDServiceStub()
+	pinger := mocks.NewPingerStub()
 
-	h := handler.New(urlService, idService, baseURL)
+	h := handler.New(urlService, idService, pinger, baseURL)
 
 	h.ServeHTTP(rw, req)
 
@@ -151,10 +156,11 @@ func TestHandlePostShortenBatch(t *testing.T) {
 	)
 	urlService := new(urlmocks.URLServiceMock)
 	idService := authmocks.NewIDServiceStub()
+	pinger := mocks.NewPingerStub()
 	urlToShorten := model.NewURLToShorten(0, longURL)
 	shortenedURL := model.NewShortenedURL(0, 123, longURL)
 	absoluteShortURL, _ := url.Parse("http://localhost:8080/123")
-	h := handler.New(urlService, idService, baseURL)
+	h := handler.New(urlService, idService, pinger, baseURL)
 	urlService.On("ShortenURL", urlToShorten).Return(&shortenedURL, nil)
 	urlService.On("AbsoluteURL", shortenedURL).Return(absoluteShortURL, nil)
 
@@ -180,8 +186,9 @@ func TestHandleGetShortUrl(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/123", nil)
 	urlService := new(urlmocks.URLServiceMock)
 	idService := authmocks.NewIDServiceStub()
+	pinger := mocks.NewPingerStub()
 	shortenedURL := model.NewShortenedURL(0, 123, longURL)
-	h := handler.New(urlService, idService, baseURL)
+	h := handler.New(urlService, idService, pinger, baseURL)
 	urlService.On("GetURLByID", 123).Return(&shortenedURL, nil)
 
 	h.ServeHTTP(rw, req)
@@ -197,7 +204,8 @@ func TestHandleGetShortUrlNotFound(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/123", nil)
 	urlService := new(urlmocks.URLServiceMock)
 	idService := authmocks.NewIDServiceStub()
-	h := handler.New(urlService, idService, baseURL)
+	pinger := mocks.NewPingerStub()
+	h := handler.New(urlService, idService, pinger, baseURL)
 	urlService.On("GetURLByID", 123).Return(nil, model.ErrURLNotFound)
 
 	h.ServeHTTP(rw, req)

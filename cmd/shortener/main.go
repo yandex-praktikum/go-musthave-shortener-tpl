@@ -43,7 +43,7 @@ func main() {
 	authSrv := auth.New(authStorage)
 	shortenerSrv := shortener.New(shortenerStorage, conf.BaseURL)
 
-	server := api.New(shortenerSrv, authSrv, conf.ServerAddress, conf.BaseURL)
+	server := api.New(shortenerSrv, authSrv, db, conf.ServerAddress, conf.BaseURL)
 
 	awaitTermination()
 
