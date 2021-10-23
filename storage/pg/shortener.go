@@ -16,8 +16,11 @@ type PgShortenerStorage struct {
 	*sql.DB
 }
 
-func NewShortenerStorage(db *sql.DB) *PgShortenerStorage {
-	return &PgShortenerStorage{db}
+func NewShortenerStorage(db *sql.DB) (*PgShortenerStorage, error) {
+	if db == nil {
+		return nil, errors.New("db should not be nil")
+	}
+	return &PgShortenerStorage{db}, nil
 }
 
 func (s *PgShortenerStorage) GetURLByID(id int) (*model.ShortenedURL, error) {

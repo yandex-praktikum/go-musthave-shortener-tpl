@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/url"
@@ -14,8 +15,11 @@ type Service struct {
 	BaseURL url.URL
 }
 
-func New(s storage.ShortenerStorage, u url.URL) *Service {
-	return &Service{s, u}
+func New(s storage.ShortenerStorage, u url.URL) (*Service, error) {
+	if s == nil {
+		return nil, errors.New("storage should not be nil")
+	}
+	return &Service{s, u}, nil
 }
 
 func (s *Service) ShortenURL(u model.URLToShorten) (*model.ShortenedURL, error) {

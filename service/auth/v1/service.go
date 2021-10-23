@@ -17,8 +17,11 @@ type Service struct {
 	storage.AuthStorage
 }
 
-func New(storage storage.AuthStorage) *Service {
-	return &Service{storage}
+func New(s storage.AuthStorage) (*Service, error) {
+	if s == nil {
+		return nil, errors.New("storage should not be nil")
+	}
+	return &Service{s}, nil
 }
 
 func (s *Service) SignUp() (*model.User, error) {

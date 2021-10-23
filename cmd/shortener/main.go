@@ -37,11 +37,25 @@ func main() {
 		log.Fatalf("Cannot start DB: %s", errDB.Error())
 	}
 
-	authStorage := pg.NewAuthStorage(db)
-	shortenerStorage := pg.NewShortenerStorage(db)
+	authStorage, errAuthStorage := pg.NewAuthStorage(db)
+	if errAuthStorage != nil {
+		log.Fatalf("Cannot instantiate auth storage: %s", errAuthStorage.Error())
+	}
 
-	authSrv := auth.New(authStorage)
-	shortenerSrv := shortener.New(shortenerStorage, conf.BaseURL)
+	shortenerStorage, errShortenerStorage := pg.NewShortenerStorage(db)
+	if errShortenerStorage != nil {
+		log.Fatalf("Cannot instantiate shortener storage: %s", errShortenerStorage.Error())
+	}
+
+	authSrv, errAuthSrv := auth.New(authStorage)
+	if errAuthSrv != nil {
+		log.Fatalf("Cannot instantiate auth service: %s", errAuthSrv.Error())
+	}
+
+	shortenerSrv, errShortenerSrv := shortener.New(shortenerStorage, conf.BaseURL)
+	if errShortenerSrv != nil {
+		log.Fatalf("Cannot instantiate shortener service: %s", errShortenerSrv.Error())
+	}
 
 	server := api.New(shortenerSrv, authSrv, db, conf.ServerAddress, conf.BaseURL)
 

@@ -2,6 +2,7 @@ package pg
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/im-tollu/yandex-go-musthave-shortener-tpl/model"
@@ -11,8 +12,11 @@ type PgAuthStorage struct {
 	*sql.DB
 }
 
-func NewAuthStorage(db *sql.DB) *PgAuthStorage {
-	return &PgAuthStorage{db}
+func NewAuthStorage(db *sql.DB) (*PgAuthStorage, error) {
+	if db == nil {
+		return nil, errors.New("db should not be nil")
+	}
+	return &PgAuthStorage{db}, nil
 }
 
 func (s *PgAuthStorage) GetUserByID(id int64) (*model.User, error) {
