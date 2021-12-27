@@ -13,12 +13,12 @@ func NewStorage() *URLStorage {
 		mx:      sync.Mutex{},
 	}
 }
-func (us *URLStorage) SaveURL(key string, value string) {
+func (us *URLStorage) SaveURLtoStorage(key string, value string) {
 	us.mx.Lock()
 	us.storage[key] = value
 	us.mx.Unlock()
 }
 
-func (us *URLStorage) GetURLbyID(key string) string {
+func (us *URLStorage) GetURLfromStorage(key string) string {
 	return us.storage[key]
 }

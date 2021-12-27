@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -19,7 +18,7 @@ func NewHandler(service *service.Service) *Handler {
 
 func (h *Handler) HandlerGet(c *gin.Context) {
 	id := c.Param("id")
-	longURL := h.service.UseStorage.GetURLbyID(id)
+	longURL := h.service.GetURL(id)
 	if longURL == "" {
 		c.String(http.StatusBadRequest, "URL not found")
 		return
@@ -34,7 +33,7 @@ func (h *Handler) HandlerPost(c *gin.Context) {
 		c.Status(http.StatusBadRequest)
 		return
 	}
-	id := h.service.UseStorage.SaveURL(string(body))
+	id := h.service.SaveURL(string(body))
 	c.String(http.StatusCreated, "http://localhost:8080/"+id)
-	fmt.Println(id + " / " + string(body))
+
 }

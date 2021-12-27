@@ -1,15 +1,29 @@
 package service
 
-import "github.com/EMus88/go-musthave-shortener-tpl/internal/repository"
+import (
+	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository"
+	"github.com/EMus88/go-musthave-shortener-tpl/pkg/idgenerator"
+)
 
-type UseStorage interface {
-	SaveURL(value string) string
-	GetURLbyID(id string) string
+type Repositiries interface {
+	SaveURLtoStorage(key string, value string)
+	GetURLfromStorage(id string) string
 }
 type Service struct {
-	UseStorage
+	Repositiries
 }
 
 func NewService(repos *repository.URLStorage) *Service {
-	return &Service{UseStorage: NewStorageService(repos)}
+	return &Service{Repositiries: repos}
+}
+
+func (s *Service) SaveURL(value string) string {
+	key := idgenerator.CreateID()
+	s.Repositiries.SaveURLtoStorage(key, value)
+	return key
+}
+
+func (s *Service) GetURL(key string) string {
+	value := s.Repositiries.GetURLfromStorage(key)
+	return value
 }

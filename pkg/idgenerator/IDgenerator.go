@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-func CreateID() *string {
+func CreateID() string {
 	b := make([]byte, 8)
 	_, err := rand.Read(b)
 	if err != nil {
@@ -14,6 +14,6 @@ func CreateID() *string {
 	}
 	id := fmt.Sprintf("%x%x",
 		b[0:4], b[4:6])
-	return &id
+	return id
 
 }

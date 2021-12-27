@@ -50,8 +50,8 @@ func TestHandler_HandlerGet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			storage := repository.NewStorage()
-			storage.SaveURL("yandex", "https://yandex.ru/search/?text=go&lr=11351&clid=9403")
-			storage.SaveURL("wiki", "https://ru.wikipedia.org/wiki/Go")
+			storage.SaveURLtoStorage("yandex", "https://yandex.ru/search/?text=go&lr=11351&clid=9403")
+			storage.SaveURLtoStorage("wiki", "https://ru.wikipedia.org/wiki/Go")
 
 			s := service.NewService(storage)
 			h := NewHandler(s)
