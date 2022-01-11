@@ -1,24 +1,27 @@
 package repository
 
-import "sync"
+import (
+	"errors"
+	"sync"
+)
 
 type URLStorage struct {
-	storage map[string]string
-	mx      sync.Mutex
+	storage sync.Map
 }
 
 func NewStorage() *URLStorage {
 	return &URLStorage{
-		storage: make(map[string]string, 10),
-		mx:      sync.Mutex{},
+		storage: sync.Map{},
 	}
 }
-func (us *URLStorage) SaveURLtoStorage(key string, value string) {
-	us.mx.Lock()
-	us.storage[key] = value
-	us.mx.Unlock()
+func (us *URLStorage) SaveURL(key string, value string) {
+	us.storage.Store(key, value)
 }
 
-func (us *URLStorage) GetURLfromStorage(key string) string {
-	return us.storage[key]
+func (us *URLStorage) GetURL(key string) (string, error) {
+	value, ok := us.storage.Load(key)
+	if ok {
+		return value.(string), nil
+	}
+	return "", errors.New("URL not found in base")
 }
