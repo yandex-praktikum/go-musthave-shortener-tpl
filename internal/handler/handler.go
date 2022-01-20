@@ -43,7 +43,7 @@ func (h *Handler) HandlerGet(c *gin.Context) {
 func (h *Handler) HandlerPostText(c *gin.Context) {
 	var request Request
 	//if request body is compressed
-	if c.GetHeader("Content-Encoding") == "gzip" {
+	if strings.Contains(c.GetHeader("Content-Encoding"), "gzip") {
 		reader, err := gzip.NewReader(c.Request.Body)
 		if err != nil {
 			log.Fatal("error decoding response", err)
