@@ -81,10 +81,12 @@ func (h *Handler) HandlerPostText(c *gin.Context) {
 			c.String(http.StatusBadRequest, "Not allowed request")
 			return
 		}
+
 		//gz.Write([]byte(fmt.Sprint(h.service.Config.BaseURL, "/", id)))
 		gz.Write([]byte(fmt.Sprint(h.service.Config.BaseURL, "/", id)))
 		defer gz.Close()
 		c.Writer.Header().Set("Content-Encoding", "gzip")
+		c.Writer.Header().Set("Content-Type", "application/x-gzip")
 		c.Status(http.StatusCreated)
 		//if the client doesn't support compression
 	} else {
