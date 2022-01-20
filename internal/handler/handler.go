@@ -75,7 +75,7 @@ func (h *Handler) HandlerPostText(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
 	}
 	//if the client supports compression
-	if strings.Contains(c.GetHeader("Accept-Encoding"), "gzip") {
+	if strings.Contains(c.GetHeader("Accept-Encoding"), "dfgdfg") {
 		c.Status(http.StatusCreated)
 		gz := gzip.NewWriter(c.Writer)
 		defer gz.Close()
