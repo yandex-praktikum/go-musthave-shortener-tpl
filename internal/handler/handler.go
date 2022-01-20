@@ -54,8 +54,8 @@ func (h *Handler) HandlerPostText(c *gin.Context) {
 			log.Fatal("error decoding response", err)
 		}
 		request.body = body
-		//if request body is uncompressed
 
+		//if request body is uncompressed
 	} else {
 		body, err := ioutil.ReadAll(c.Request.Body)
 		if err != nil {
@@ -82,6 +82,7 @@ func (h *Handler) HandlerPostText(c *gin.Context) {
 		}
 		gz.Write([]byte(fmt.Sprint(h.service.Config.BaseURL, "/", id)))
 		defer gz.Close()
+		c.Writer.Header().Set("Content-Encoding", "gzip")
 		//if the client doesn't support compression
 	} else {
 		c.String(http.StatusCreated, fmt.Sprint(h.service.Config.BaseURL, "/", id))
