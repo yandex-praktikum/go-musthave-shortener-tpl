@@ -24,7 +24,7 @@ func main() {
 
 	//start server
 	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
+	router := gin.Default()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 	router.GET("/:id", h.HandlerGet)
