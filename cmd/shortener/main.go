@@ -24,7 +24,9 @@ func main() {
 
 	//start server
 	gin.SetMode(gin.ReleaseMode)
-	router := gin.Default()
+	router := gin.New()
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
 	router.GET("/:id", h.HandlerGet)
 	router.POST("/", h.HandlerPostText)
 	router.POST("/api/shorten", h.HandlerPostJSON)
