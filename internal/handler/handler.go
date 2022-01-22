@@ -2,6 +2,7 @@ package handler
 
 import (
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -56,10 +57,16 @@ func parseRequest(c *gin.Context) (*Request, error) {
 			}
 			request.body = body
 		}
+	default:
+		body, err := ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			return nil, err
+		}
+		request.body = body
 	}
-	// if request.LongURL == "" && len(request.body) == 0 {
-	// 	return nil, errors.New("error")
-	// }
+	if request.LongURL == "" && len(request.body) == 0 {
+		return nil, errors.New("error")
+	}
 	return &request, nil
 }
 
