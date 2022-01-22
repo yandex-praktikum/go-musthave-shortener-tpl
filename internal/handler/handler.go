@@ -28,11 +28,22 @@ func NewHandler(service *service.Service) *Handler {
 	return &Handler{service: service}
 }
 
+//================================================================
+func isEncodingSupport(c *gin.Context) bool {
+	//if the client supports compression
+	if strings.Contains(c.GetHeader("Accept-Encoding"), "gzip") {
+		return true
+		//if the client doesn't support compression
+	} else {
+		return false
+	}
+}
+
 //=================================================================
 func parseRequest(c *gin.Context) (*Request, error) {
 	var request Request
-	switch c.Request.Header.Get("content-type") {
 
+	switch c.Request.Header.Get("content-type") {
 	case "application/json":
 		if err := c.ShouldBindJSON(&request); err != nil {
 			return nil, err
@@ -78,8 +89,25 @@ func parseRequest(c *gin.Context) (*Request, error) {
 }
 
 //================================================================
-func renderResponse(c *gin.Context) {
+func renderResponse(c *gin.Context, res *Result) {
 
+	if isEncodingSupport(c) {
+		c.Status(http.StatusCreated)
+		gz := gzip.NewWriter(c.Writer)
+		defer gz.Close()
+		gz.Write([]byte(res.Result))
+		c.Writer.Header().Set("Content-Encoding", "gzip")
+		c.Writer.Header().Set("Content-Type", "application/x-gzip")
+	}
+
+	switch c.Request.Header.Get("content-type") {
+	case "application/json":
+		c.JSON(http.StatusCreated, res)
+	case "text/plain":
+		c.String(http.StatusCreated, res.Result)
+	default:
+		c.String(http.StatusCreated, res.Result)
+	}
 }
 
 //=================================================================
@@ -90,8 +118,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	r.Use(gin.Recovery())
 	r.Use()
 	r.GET("/:id", h.HandlerGet)
-	r.POST("/", h.HandlerPostText)
-	r.POST("/api/shorten", h.HandlerPostJSON)
+	r.POST("/", h.HandlerPost)
+	r.POST("/api/shorten", h.HandlerPost)
 	r.NoRoute(func(c *gin.Context) { c.String(http.StatusBadRequest, "Not allowed requset") })
 	return r
 }
@@ -109,45 +137,19 @@ func (h *Handler) HandlerGet(c *gin.Context) {
 }
 
 //==================================================================
-func (h *Handler) HandlerPostText(c *gin.Context) {
+func (h *Handler) HandlerPost(c *gin.Context) {
 	request, err := parseRequest(c)
 	if err != nil {
 		c.String(http.StatusBadRequest, "error: Not Allowd request")
 		return
 	}
-
 	//Ganerate short URL and save to storage
 	id, err := h.service.SaveURL(string(request.body))
 	if err != nil {
 		c.String(http.StatusInternalServerError, "error: Internal error")
 	}
-
-	//if the client supports compression
-	if strings.Contains(c.GetHeader("Accept-Encoding"), "dfgdfg") {
-		c.Status(http.StatusCreated)
-		gz := gzip.NewWriter(c.Writer)
-		defer gz.Close()
-		gz.Write([]byte(fmt.Sprint(h.service.Config.BaseURL, "/", id)))
-		c.Writer.Header().Set("Content-Encoding", "gzip")
-		c.Writer.Header().Set("Content-Type", "application/x-gzip")
-		//if the client doesn't support compression
-	} else {
-		c.String(http.StatusCreated, fmt.Sprint(h.service.Config.BaseURL, "/", id))
-	}
-}
-
-//===================================================================
-func (h *Handler) HandlerPostJSON(c *gin.Context) {
-	request, err := parseRequest(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Not Allowd request"})
-	}
-	id, err := h.service.SaveURL(request.LongURL)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
-	}
-	shortURL := fmt.Sprint(h.service.Config.BaseURL, "/", id)
 	var result Result
-	result.Result = shortURL
-	c.JSON(http.StatusCreated, result)
+	//write result
+	result.Result = fmt.Sprint(h.service.Config.BaseURL, "/", id)
+	renderResponse(c, &result)
 }
