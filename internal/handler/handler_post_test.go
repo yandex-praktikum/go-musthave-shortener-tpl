@@ -39,6 +39,13 @@ func TestHandler_HandlerPostText(t *testing.T) {
 				statusCode: http.StatusBadRequest,
 			},
 		},
+		{
+			name:        "test 3",
+			requestBody: "sdfsdfsdfsdfsdfsdf",
+			want: want{
+				statusCode: http.StatusBadRequest,
+			},
+		},
 	}
 
 	for _, tt := range tests {

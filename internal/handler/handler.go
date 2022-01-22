@@ -50,7 +50,7 @@ func parseRequest(c *gin.Context) (*Request, error) {
 			return nil, errors.New("error")
 		}
 		if ok := govalidator.IsURL(string(body)); !ok {
-			return nil, err
+			return nil, errors.New("error")
 		}
 		request.body = body
 
@@ -73,10 +73,13 @@ func parseRequest(c *gin.Context) (*Request, error) {
 			return nil, err
 		}
 		request.body = body
-		fmt.Println("default")
 	}
-	fmt.Println(string(request.body))
 	return &request, nil
+}
+
+//================================================================
+func renderResponse(c *gin.Context) {
+
 }
 
 //=================================================================
@@ -110,6 +113,7 @@ func (h *Handler) HandlerPostText(c *gin.Context) {
 	request, err := parseRequest(c)
 	if err != nil {
 		c.String(http.StatusBadRequest, "error: Not Allowd request")
+		return
 	}
 
 	//Ganerate short URL and save to storage
