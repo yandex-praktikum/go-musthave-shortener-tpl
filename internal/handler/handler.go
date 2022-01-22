@@ -51,6 +51,7 @@ func parseRequest(c *gin.Context) (*Request, error) {
 		if ok := govalidator.IsURL(string(request.LongURL)); !ok {
 			return nil, errors.New("error")
 		}
+		request.body = []byte(request.LongURL)
 
 	case "text/plain":
 		body, err := ioutil.ReadAll(c.Request.Body)
