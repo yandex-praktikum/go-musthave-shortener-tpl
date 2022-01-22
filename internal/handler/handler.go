@@ -31,7 +31,7 @@ func NewHandler(service *service.Service) *Handler {
 //================================================================
 func isEncodingSupport(c *gin.Context) bool {
 	//if the client supports compression
-	if strings.Contains(c.GetHeader("Accept-Encoding"), "gzip") {
+	if strings.Contains(c.GetHeader("Accept-Encoding"), "qweqwe") {
 		return true
 		//if the client doesn't support compression
 	} else {
@@ -66,7 +66,7 @@ func parseRequest(c *gin.Context) (*Request, error) {
 		request.body = body
 
 	case "application/x-gzip":
-		if strings.Contains(c.GetHeader("Content-Encoding"), "wrwe") {
+		if strings.Contains(c.GetHeader("Content-Encoding"), "gzip") {
 			reader, err := gzip.NewReader(c.Request.Body)
 			if err != nil {
 				return nil, err
