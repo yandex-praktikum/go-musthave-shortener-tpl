@@ -30,7 +30,7 @@ func NewHandler(service *service.Service) *Handler {
 //=================================================================
 func parseRequest(c *gin.Context) (*Request, error) {
 	var request Request
-	switch c.Request.Header.Get("Content-Type") {
+	switch c.Request.Header.Get("content-type") {
 
 	case "application/json":
 		if err := c.ShouldBindJSON(&request); err != nil {
