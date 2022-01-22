@@ -71,8 +71,9 @@ func parseRequest(c *gin.Context) (*Request, error) {
 			return nil, err
 		}
 		request.body = body
+		fmt.Println("default")
 	}
-
+	fmt.Println(string(request.body))
 	return &request, nil
 }
 
@@ -114,8 +115,6 @@ func (h *Handler) HandlerPostText(c *gin.Context) {
 	if err != nil {
 		c.String(http.StatusInternalServerError, "error: Internal error")
 	}
-
-	c.String(http.StatusCreated, fmt.Sprint(h.service.Config.BaseURL, "/", id))
 
 	//if the client supports compression
 	if strings.Contains(c.GetHeader("Accept-Encoding"), "dfgdfg") {
