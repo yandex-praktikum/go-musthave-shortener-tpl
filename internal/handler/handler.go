@@ -31,7 +31,6 @@ func NewHandler(service *service.Service) *Handler {
 //=================================================================
 func parseRequest(c *gin.Context) (*Request, error) {
 	var request Request
-
 	switch c.Request.Header.Get("content-type") {
 
 	case "application/json":
@@ -46,6 +45,9 @@ func parseRequest(c *gin.Context) (*Request, error) {
 		body, err := ioutil.ReadAll(c.Request.Body)
 		if err != nil {
 			return nil, err
+		}
+		if len(body) < 1 {
+			return nil, errors.New("error")
 		}
 		if ok := govalidator.IsURL(string(body)); !ok {
 			return nil, err
