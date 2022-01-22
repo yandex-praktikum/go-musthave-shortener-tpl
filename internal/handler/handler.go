@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/app/service"
+	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,16 +31,23 @@ func NewHandler(service *service.Service) *Handler {
 //=================================================================
 func parseRequest(c *gin.Context) (*Request, error) {
 	var request Request
+
 	switch c.Request.Header.Get("content-type") {
 
 	case "application/json":
 		if err := c.ShouldBindJSON(&request); err != nil {
 			return nil, err
 		}
+		if ok := govalidator.IsURL(string(request.LongURL)); !ok {
+			return nil, errors.New("error")
+		}
 
 	case "text/plain":
 		body, err := ioutil.ReadAll(c.Request.Body)
 		if err != nil {
+			return nil, err
+		}
+		if ok := govalidator.IsURL(string(body)); !ok {
 			return nil, err
 		}
 		request.body = body
@@ -64,9 +72,7 @@ func parseRequest(c *gin.Context) (*Request, error) {
 		}
 		request.body = body
 	}
-	if request.LongURL == "" && len(request.body) == 0 {
-		return nil, errors.New("error")
-	}
+
 	return &request, nil
 }
 
@@ -112,17 +118,17 @@ func (h *Handler) HandlerPostText(c *gin.Context) {
 	c.String(http.StatusCreated, fmt.Sprint(h.service.Config.BaseURL, "/", id))
 
 	//if the client supports compression
-	// if strings.Contains(c.GetHeader("Accept-Encoding"), "dfgdfg") {
-	// 	c.Status(http.StatusCreated)
-	// 	gz := gzip.NewWriter(c.Writer)
-	// 	defer gz.Close()
-	// 	gz.Write([]byte(fmt.Sprint(h.service.Config.BaseURL, "/", id)))
-	// 	c.Writer.Header().Set("Content-Encoding", "gzip")
-	// 	c.Writer.Header().Set("Content-Type", "application/x-gzip")
-	// 	//if the client doesn't support compression
-	// } else {
-	// 	c.String(http.StatusCreated, fmt.Sprint(h.service.Config.BaseURL, "/", id))
-	// }
+	if strings.Contains(c.GetHeader("Accept-Encoding"), "dfgdfg") {
+		c.Status(http.StatusCreated)
+		gz := gzip.NewWriter(c.Writer)
+		defer gz.Close()
+		gz.Write([]byte(fmt.Sprint(h.service.Config.BaseURL, "/", id)))
+		c.Writer.Header().Set("Content-Encoding", "gzip")
+		c.Writer.Header().Set("Content-Type", "application/x-gzip")
+		//if the client doesn't support compression
+	} else {
+		c.String(http.StatusCreated, fmt.Sprint(h.service.Config.BaseURL, "/", id))
+	}
 }
 
 //===================================================================

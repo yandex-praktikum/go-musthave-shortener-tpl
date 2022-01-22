@@ -6,6 +6,8 @@ require github.com/gin-gonic/gin v1.7.7
 
 require github.com/joho/godotenv v1.4.0
 
+require github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
+
 require (
 	github.com/gin-contrib/gzip v0.0.5
 	github.com/gin-contrib/sse v0.1.0 // indirect
