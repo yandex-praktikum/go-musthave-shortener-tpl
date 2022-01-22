@@ -2,9 +2,9 @@ package handler
 
 import (
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 
@@ -28,6 +28,57 @@ func NewHandler(service *service.Service) *Handler {
 }
 
 //=================================================================
+func parseRequest(c *gin.Context) (*Request, error) {
+	var request Request
+	switch c.Request.Header.Get("Content-Type") {
+
+	case "application/json":
+		if err := c.ShouldBindJSON(&request); err != nil {
+			return nil, err
+		}
+
+	case "text/plain":
+		body, err := ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			return nil, err
+		}
+		request.body = body
+
+	case "application/x-gzip":
+		if strings.Contains(c.GetHeader("Content-Encoding"), "gzip") {
+			reader, err := gzip.NewReader(c.Request.Body)
+			if err != nil {
+				return nil, err
+			}
+			defer reader.Close()
+			body, err := ioutil.ReadAll(reader)
+			if err != nil {
+				return nil, err
+			}
+			request.body = body
+		}
+	}
+	if request.LongURL == "" && len(request.body) == 0 {
+		return nil, errors.New("error")
+	}
+	return &request, nil
+}
+
+//=================================================================
+func (h *Handler) InitRoutes() *gin.Engine {
+	gin.SetMode(gin.ReleaseMode)
+	r := gin.New()
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
+	r.Use()
+	r.GET("/:id", h.HandlerGet)
+	r.POST("/", h.HandlerPostText)
+	r.POST("/api/shorten", h.HandlerPostJSON)
+	r.NoRoute(func(c *gin.Context) { c.String(http.StatusBadRequest, "Not allowed requset") })
+	return r
+}
+
+//=================================================================
 func (h *Handler) HandlerGet(c *gin.Context) {
 	id := c.Param("id")
 	longURL, err := h.service.GetURL(id)
@@ -41,33 +92,9 @@ func (h *Handler) HandlerGet(c *gin.Context) {
 
 //==================================================================
 func (h *Handler) HandlerPostText(c *gin.Context) {
-	var request Request
-	//if request body is compressed
-	if strings.Contains(c.GetHeader("Content-Encoding"), "gzip") {
-		reader, err := gzip.NewReader(c.Request.Body)
-		if err != nil {
-			log.Fatal("error decoding response", err)
-		}
-		defer reader.Close()
-		body, err := ioutil.ReadAll(reader)
-		if err != nil {
-			log.Fatal("error decoding response", err)
-		}
-		request.body = body
-
-		//if request body is uncompressed
-	} else {
-		body, err := ioutil.ReadAll(c.Request.Body)
-		if err != nil {
-			c.String(http.StatusBadRequest, "Not allowed request")
-			return
-		}
-		request.body = body
-	}
-
-	if len(request.body) == 0 {
-		c.String(http.StatusBadRequest, "Not allowed request")
-		return
+	request, err := parseRequest(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Not Allowd request"})
 	}
 	//Ganerate short URL and save to storage
 	id, err := h.service.SaveURL(string(request.body))
@@ -90,16 +117,10 @@ func (h *Handler) HandlerPostText(c *gin.Context) {
 
 //===================================================================
 func (h *Handler) HandlerPostJSON(c *gin.Context) {
-	var request Request
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Not allowed request"})
-		return
+	request, err := parseRequest(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Not Allowd request"})
 	}
-	if request.LongURL == "" || c.GetHeader("content-type") != "application/json" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Not allowed request"})
-		return
-	}
-
 	id, err := h.service.SaveURL(request.LongURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
