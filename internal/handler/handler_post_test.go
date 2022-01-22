@@ -87,9 +87,9 @@ func TestHandler_HandlerPostJSON(t *testing.T) {
 		{
 			name:        "test 2",
 			RequestBody: "https://yandex.ru/search/?text=go&lr=11351&clid=9403sdfasdfasdfasdf",
-			contentType: "text/plain",
+			contentType: "application/json",
 			want: want{
-				statusCode: http.StatusBadRequest,
+				statusCode: http.StatusCreated,
 			},
 		},
 	}
