@@ -2,7 +2,6 @@ package handler
 
 import (
 	"compress/gzip"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -58,9 +57,9 @@ func parseRequest(c *gin.Context) (*Request, error) {
 			request.body = body
 		}
 	}
-	if request.LongURL == "" && len(request.body) == 0 {
-		return nil, errors.New("error")
-	}
+	// if request.LongURL == "" && len(request.body) == 0 {
+	// 	return nil, errors.New("error")
+	// }
 	return &request, nil
 }
 
@@ -94,25 +93,29 @@ func (h *Handler) HandlerGet(c *gin.Context) {
 func (h *Handler) HandlerPostText(c *gin.Context) {
 	request, err := parseRequest(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Not Allowd request"})
+		c.String(http.StatusBadRequest, "error: Not Allowd request")
 	}
+
 	//Ganerate short URL and save to storage
 	id, err := h.service.SaveURL(string(request.body))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
+		c.String(http.StatusInternalServerError, "error: Internal error")
 	}
+
+	c.String(http.StatusCreated, fmt.Sprint(h.service.Config.BaseURL, "/", id))
+
 	//if the client supports compression
-	if strings.Contains(c.GetHeader("Accept-Encoding"), "dfgdfg") {
-		c.Status(http.StatusCreated)
-		gz := gzip.NewWriter(c.Writer)
-		defer gz.Close()
-		gz.Write([]byte(fmt.Sprint(h.service.Config.BaseURL, "/", id)))
-		c.Writer.Header().Set("Content-Encoding", "gzip")
-		c.Writer.Header().Set("Content-Type", "application/x-gzip")
-		//if the client doesn't support compression
-	} else {
-		c.String(http.StatusCreated, fmt.Sprint(h.service.Config.BaseURL, "/", id))
-	}
+	// if strings.Contains(c.GetHeader("Accept-Encoding"), "dfgdfg") {
+	// 	c.Status(http.StatusCreated)
+	// 	gz := gzip.NewWriter(c.Writer)
+	// 	defer gz.Close()
+	// 	gz.Write([]byte(fmt.Sprint(h.service.Config.BaseURL, "/", id)))
+	// 	c.Writer.Header().Set("Content-Encoding", "gzip")
+	// 	c.Writer.Header().Set("Content-Type", "application/x-gzip")
+	// 	//if the client doesn't support compression
+	// } else {
+	// 	c.String(http.StatusCreated, fmt.Sprint(h.service.Config.BaseURL, "/", id))
+	// }
 }
 
 //===================================================================
