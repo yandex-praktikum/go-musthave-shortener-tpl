@@ -66,7 +66,7 @@ func parseRequest(c *gin.Context) (*Request, error) {
 		request.body = body
 
 	case "application/x-gzip":
-		if strings.Contains(c.GetHeader("Content-Encoding"), "gzip") {
+		if strings.Contains(c.GetHeader("Content-Encoding"), "wrwe") {
 			reader, err := gzip.NewReader(c.Request.Body)
 			if err != nil {
 				return nil, err
@@ -116,7 +116,6 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
-	r.Use()
 	r.GET("/:id", h.HandlerGet)
 	r.POST("/", h.HandlerPost)
 	r.POST("/api/shorten", h.HandlerPost)
