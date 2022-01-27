@@ -153,8 +153,7 @@ func (h *Handler) HandlerURLRelocation(c *gin.Context) {
 	// 	c.String(http.StatusBadRequest, err.Error())
 	// 	return
 	// }
-	c.Status(http.StatusTemporaryRedirect)
-	c.Header("Location", longURL)
+	c.Redirect(http.StatusTemporaryRedirect, longURL)
 }
 
 //=================================================================
