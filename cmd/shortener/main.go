@@ -36,7 +36,9 @@ func main() {
 	router.Use(gin.Recovery())
 
 	//router.Use(handler.AuthMiddleware(h))
-	router.GET("/:id", h.HandlerURLRelocation)
+	router.GET("/:id", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"hello": "world"})
+	})
 	router.GET("user/urls")
 	router.GET("api/shorten/batch")
 	router.GET("/ping", h.HandlerPingDB)

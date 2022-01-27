@@ -103,7 +103,6 @@ func renderResponse(c *gin.Context, response *Response) {
 		c.Writer.Header().Set("Content-Type", "application/x-gzip")
 
 	} else {
-		fmt.Println(c.Request.Header.Get("content-type"))
 		switch c.Request.Header.Get("content-type") {
 		case "application/json":
 			c.JSON(http.StatusCreated, response)
@@ -145,9 +144,9 @@ func AuthMiddleware(h *Handler) gin.HandlerFunc {
 
 //=================================================================
 func (h *Handler) HandlerURLRelocation(c *gin.Context) {
-	log.Println("GET hanler")
-	id := c.Param("id")
-	log.Println(id)
+	scheme := c.Request.URL.Scheme
+	fmt.Println(scheme)
+	//id := c.Param("id")
 	//longURL, err := h.service.GetURL(id)
 	longURL := "https://github.com/EMus88/go-musthave-shortener-tpl"
 	// if err != nil {
@@ -167,6 +166,8 @@ func (h *Handler) HandlerPingDB(c *gin.Context) {
 
 //==================================================================
 func (h *Handler) HandlerPost(c *gin.Context) {
+	scheme := c.Request.URL.Scheme
+	fmt.Println(scheme)
 	request, err := parseRequest(c)
 	if err != nil {
 		c.String(http.StatusBadRequest, "error: Not Allowd request")
