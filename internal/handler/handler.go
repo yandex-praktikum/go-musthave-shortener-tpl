@@ -161,7 +161,7 @@ func AuthMiddleware(h *Handler) gin.HandlerFunc {
 
 //=================================================================
 func (h *Handler) HandlerURLRelocation(c *gin.Context) {
-
+	fmt.Println("GET hanler")
 	id := c.Param("id")
 	fmt.Println("id from hanler", id)
 	longURL, err := h.service.GetURL(id)
