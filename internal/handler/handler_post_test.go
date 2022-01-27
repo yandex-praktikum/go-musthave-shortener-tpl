@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -11,7 +12,6 @@ import (
 	"github.com/EMus88/go-musthave-shortener-tpl/configs"
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/app/service"
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository"
-	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository/models/file"
 	"github.com/gin-gonic/gin"
 	"github.com/magiconair/properties/assert"
 )
@@ -51,10 +51,16 @@ func TestHandler_HandlerPostText(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			var model file.Model
 			config := configs.NewConfigForTest()
-			r := repository.NewStorage()
-			s := service.NewService(r, &model, config)
+
+			ctx := context.TODO()
+			db, err := repository.NewDBClient(ctx, config)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			r := repository.NewStorage(db)
+			s := service.NewService(r, config)
 			h := NewHandler(s)
 
 			gin.SetMode(gin.ReleaseMode)
@@ -104,10 +110,16 @@ func TestHandler_HandlerPostJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			var model file.Model
 			config := configs.NewConfigForTest()
-			r := repository.NewStorage()
-			s := service.NewService(r, &model, config)
+
+			ctx := context.TODO()
+			db, err := repository.NewDBClient(ctx, config)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			r := repository.NewStorage(db)
+			s := service.NewService(r, config)
 			h := NewHandler(s)
 
 			gin.SetMode(gin.ReleaseMode)

@@ -3,8 +3,8 @@ package handler
 import (
 	"compress/gzip"
 	"errors"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 
@@ -14,14 +14,15 @@ import (
 )
 
 type Handler struct {
-	service *service.Service
+	service   *service.Service
+	sessionID string
 }
 type Request struct {
 	LongURL string `json:"url"  binding:"required"`
 	body    []byte
 }
-type Result struct {
-	Result string `json:"result"`
+type Response struct {
+	ShortURL string `json:"result"`
 }
 
 func NewHandler(service *service.Service) *Handler {
@@ -90,24 +91,25 @@ func parseRequest(c *gin.Context) (*Request, error) {
 }
 
 //================================================================
-func renderResponse(c *gin.Context, res *Result) {
+func renderResponse(c *gin.Context, response *Response) {
 
 	if isEncodingSupport(c) {
 		c.Status(http.StatusCreated)
 		gz := gzip.NewWriter(c.Writer)
 		defer gz.Close()
-		gz.Write([]byte(res.Result))
+		gz.Write([]byte(response.ShortURL))
 		c.Writer.Header().Set("Content-Encoding", "gzip")
 		c.Writer.Header().Set("Content-Type", "application/x-gzip")
-	}
 
-	switch c.Request.Header.Get("content-type") {
-	case "application/json":
-		c.JSON(http.StatusCreated, res)
-	case "text/plain":
-		c.String(http.StatusCreated, res.Result)
-	default:
-		c.String(http.StatusCreated, res.Result)
+	} else {
+		switch c.Request.Header.Get("content-type") {
+		case "application/json":
+			c.JSON(http.StatusCreated, response.ShortURL)
+		case "text/plain":
+			c.String(http.StatusCreated, response.ShortURL)
+		default:
+			c.String(http.StatusCreated, response.ShortURL)
+		}
 	}
 }
 
@@ -117,7 +119,11 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
-	r.GET("/:id", h.HandlerGet)
+	r.Use(AuthMiddleware(h))
+	r.GET("/:id", h.HandlerURLRelocation)
+	r.GET("user/urls")
+	r.GET("api/shorten/batch")
+	r.GET("/ping", h.HandlerPingDB)
 	r.POST("/", h.HandlerPost)
 	r.POST("/api/shorten", h.HandlerPost)
 	r.NoRoute(func(c *gin.Context) { c.String(http.StatusBadRequest, "Not allowed requset") })
@@ -125,7 +131,37 @@ func (h *Handler) InitRoutes() *gin.Engine {
 }
 
 //=================================================================
-func (h *Handler) HandlerGet(c *gin.Context) {
+
+func AuthMiddleware(h *Handler) gin.HandlerFunc {
+
+	return func(c *gin.Context) {
+		sessionID, err := c.Cookie("session")
+
+		//validation session value
+		// var id int = h.service.Repository.GetCookieID("sdfsdfsdf")
+		// fmt.Println(id)
+
+		if err != nil {
+			if !errors.Is(err, http.ErrNoCookie) {
+				log.Fatal(err)
+			}
+			id, encID, err := h.service.Auth.CreateSissionID()
+			if err != nil {
+				log.Fatal(err)
+			}
+			println("New session ID: ", id)
+			sessionID = encID
+		}
+
+		c.SetCookie("session", sessionID, 3600, "", "localhost", false, true)
+
+		c.Next()
+	}
+}
+
+//=================================================================
+func (h *Handler) HandlerURLRelocation(c *gin.Context) {
+
 	id := c.Param("id")
 	longURL, err := h.service.GetURL(id)
 	if err != nil {
@@ -136,6 +172,14 @@ func (h *Handler) HandlerGet(c *gin.Context) {
 	c.Header("Location", longURL)
 }
 
+//=================================================================
+func (h *Handler) HandlerPingDB(c *gin.Context) {
+	if err := h.service.Repository.PingDB(); err != nil {
+		c.String(http.StatusInternalServerError, "DB connection is not available")
+	}
+	c.String(http.StatusOK, "DB connection succes")
+}
+
 //==================================================================
 func (h *Handler) HandlerPost(c *gin.Context) {
 	request, err := parseRequest(c)
@@ -143,13 +187,13 @@ func (h *Handler) HandlerPost(c *gin.Context) {
 		c.String(http.StatusBadRequest, "error: Not Allowd request")
 		return
 	}
-	//Ganerate short URL and save to storage
-	id, err := h.service.SaveURL(string(request.body))
+
+	shortURL, err := h.service.SaveURL(string(request.body), h.sessionID)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "error: Internal error")
 	}
-	var result Result
 	//write result
-	result.Result = fmt.Sprint(h.service.Config.BaseURL, "/", id)
-	renderResponse(c, &result)
+	var response Response
+	response.ShortURL = shortURL
+	renderResponse(c, &response)
 }

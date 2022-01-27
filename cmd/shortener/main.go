@@ -1,28 +1,34 @@
 package main
 
 import (
+	"context"
+	"log"
 	"net/http"
 
 	"github.com/EMus88/go-musthave-shortener-tpl/configs"
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/app/service"
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/handler"
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository"
-	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository/models/file"
+
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	var model file.Model
 
 	config := configs.NewConfig()
-	r := repository.NewStorage()
-	s := service.NewService(r, &model, config)
-	h := handler.NewHandler(s)
+	ctx := context.Background()
+	db, err := repository.NewDBClient(ctx, config)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	//load data from file
-	s.LoadFromFile()
+	repository.Migration(config)
+
+	r := repository.NewStorage(db)
+	s := service.NewService(r, config)
+	h := handler.NewHandler(s)
 
 	//start server
 	httpServer := &http.Server{Addr: config.ServerAdress, Handler: h.InitRoutes()}
 	httpServer.ListenAndServe()
-
 }

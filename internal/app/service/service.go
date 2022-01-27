@@ -1,76 +1,82 @@
 package service
 
 import (
-	"encoding/json"
-	"log"
-	"os"
-	"strings"
+	"fmt"
 
 	"github.com/EMus88/go-musthave-shortener-tpl/configs"
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository"
-	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository/models/file"
+	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository/model"
 	"github.com/EMus88/go-musthave-shortener-tpl/pkg/idgenerator"
 )
 
 type Repository interface {
-	SaveURL(key string, value string)
-	GetURL(id string) (string, error)
+	SaveURL(shortModel *model.Shorten) (string, error)
+	GetURL(id string) string
+	PingDB() error
+	GetCookieID(s string) int
+	SaveCookie(s string) (int, error)
 }
 type Service struct {
 	Repository
-	Model  file.Model
 	Config configs.Config
+	Auth   Auth
 }
 
-func NewService(repos *repository.URLStorage, model *file.Model, config *configs.Config) *Service {
-	return &Service{Repository: repos, Model: *model, Config: *config}
+func NewService(repos *repository.Storage, config *configs.Config) *Service {
+	return &Service{Repository: repos, Config: *config}
 }
 
 //save long URL in stotage and return short URL
-func (s *Service) SaveURL(value string) (string, error) {
-	//save to map
-	key := idgenerator.CreateID()
-	s.Repository.SaveURL(key, value)
+func (s *Service) SaveURL(longURL string, sessionID string) (string, error) {
+	var shortModel model.Shorten
+	shortModel.URLID = idgenerator.CreateID(8)
+	shortModel.ShortURL = fmt.Sprint(s.Config.BaseURL, "/", shortModel.URLID)
+	shortModel.LongURL = longURL
+	shortModel.SessionID = 4
+
+	shortURL, err := s.Repository.SaveURL(&shortModel)
+	if err != nil {
+		return "", err
+	}
+
 	//save to file
-	file, err := os.OpenFile(s.Config.FileStoragePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-	s.Model.ID = key
-	s.Model.LongURL = value
+	// file, err := os.OpenFile(s.Config.FileStoragePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+	// if err != nil {
+	// 	return "", err
+	// }
+	// defer file.Close()
 
-	data, err := json.MarshalIndent(s.Model, "", " ")
-	if err != nil {
-		return "", err
-	}
-	file.Write(data)
+	// s.Model.ID = key
+	// s.Model.LongURL = value
 
-	return key, nil
+	// data, err := json.MarshalIndent(s.Model, "", " ")
+	// if err != nil {
+	// 	return "", err
+	// }
+	// file.Write(data)
+
+	return shortURL, nil
 }
 
 //get long URL from stotage by short URL
 func (s *Service) GetURL(key string) (string, error) {
-	value, err := s.Repository.GetURL(key)
-	if err != nil {
-		return "", err
-	}
-	return value, nil
+	originURL := s.Repository.GetURL(key)
+	return originURL, nil
 }
 
-func (s *Service) LoadFromFile() {
+// func (s *Service) LoadFromFile() {
 
-	var model file.Model
-	file, err := os.ReadFile(s.Config.FileStoragePath)
-	if err != nil {
-		return
-	}
-	str := strings.Split(string(file), "}")
-	for i := 0; i < (len(str) - 1); i++ {
+// 	var model model.File
+// 	file, err := os.ReadFile(s.Config.FileStoragePath)
+// 	if err != nil {
+// 		return
+// 	}
+// 	str := strings.Split(string(file), "}")
+// 	for i := 0; i < (len(str) - 1); i++ {
 
-		if err := json.Unmarshal([]byte(str[i]+"}"), &model); err != nil {
-			log.Fatal(err)
-		}
-		s.Repository.SaveURL(model.ID, model.LongURL)
-	}
-}
+// 		if err := json.Unmarshal([]byte(str[i]+"}"), &model); err != nil {
+// 			log.Fatal(err)
+// 		}
+// 		s.Repository.SaveURL(model.ID, model.LongURL)
+// 	}
+// }
