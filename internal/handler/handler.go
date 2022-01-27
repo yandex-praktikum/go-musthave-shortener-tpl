@@ -120,7 +120,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
-	r.Use(AuthMiddleware(h))
+	//	r.Use(AuthMiddleware(h))
 	r.GET("/:id", h.HandlerURLRelocation)
 	r.GET("user/urls")
 	r.GET("api/shorten/batch")
@@ -139,8 +139,8 @@ func AuthMiddleware(h *Handler) gin.HandlerFunc {
 		sessionID, err := c.Cookie("session")
 
 		//validation session value
-		// var id int = h.service.Repository.GetCookieID("sdfsdfsdf")
-		// fmt.Println(id)
+		//var id int = h.service.Repository.GetCookieID("sdfsdfsdf")
+		//fmt.Println(id)
 
 		if err != nil {
 			if !errors.Is(err, http.ErrNoCookie) {
