@@ -30,11 +30,12 @@ func main() {
 	h := handler.NewHandler(s)
 
 	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
+	router := gin.Default()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
-	//	r.Use(AuthMiddleware(h))
+	//router.Use(handler.AuthMiddleware(h))
+
 	router.GET("/:id", h.HandlerURLRelocation)
 	//router.GET("user/urls")
 	//router.GET("api/shorten/batch")
