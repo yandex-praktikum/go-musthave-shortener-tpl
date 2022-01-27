@@ -148,7 +148,7 @@ func (h *Handler) HandlerURLRelocation(c *gin.Context) {
 	log.Println("GET hanler")
 	//id := c.Param("id")
 	//longURL, err := h.service.GetURL(id)
-	longURL := "ffgdfgdfg"
+	longURL := "https://github.com/EMus88/go-musthave-shortener-tpl"
 	// if err != nil {
 	// 	c.String(http.StatusBadRequest, err.Error())
 	// 	return
