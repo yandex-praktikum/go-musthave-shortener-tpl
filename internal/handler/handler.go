@@ -3,6 +3,7 @@ package handler
 import (
 	"compress/gzip"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -145,11 +146,10 @@ func AuthMiddleware(h *Handler) gin.HandlerFunc {
 			if !errors.Is(err, http.ErrNoCookie) {
 				log.Fatal(err)
 			}
-			id, encID, err := h.service.Auth.CreateSissionID()
+			_, encID, err := h.service.Auth.CreateSissionID()
 			if err != nil {
 				log.Fatal(err)
 			}
-			println("New session ID: ", id)
 			sessionID = encID
 		}
 
@@ -164,6 +164,7 @@ func (h *Handler) HandlerURLRelocation(c *gin.Context) {
 
 	id := c.Param("id")
 	longURL, err := h.service.GetURL(id)
+	fmt.Println("id from hanler", id)
 	if err != nil {
 		c.String(http.StatusBadRequest, err.Error())
 		return

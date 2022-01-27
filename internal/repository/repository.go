@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository/model"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -33,8 +32,6 @@ func (us *Storage) GetURL(key string) string {
 	WHERE
 		url_id=$1;`
 	us.DBCon.QueryRow(context.Background(), q, key).Scan(&longURL)
-	fmt.Println(key)
-	fmt.Println(longURL)
 	return longURL
 }
 
