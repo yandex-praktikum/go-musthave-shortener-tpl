@@ -3,7 +3,6 @@ package handler
 import (
 	"compress/gzip"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -161,17 +160,17 @@ func AuthMiddleware(h *Handler) gin.HandlerFunc {
 
 //=================================================================
 func (h *Handler) HandlerURLRelocation(c *gin.Context) {
-	fmt.Println("GET hanler")
-	id := c.Param("id")
-	fmt.Println("id from hanler", id)
-	longURL, err := h.service.GetURL(id)
+	log.Println("GET hanler")
+	// id := c.Param("id")
+	// longURL, err := h.service.GetURL(id)
 
-	if err != nil {
-		c.String(http.StatusBadRequest, err.Error())
-		return
-	}
+	// if err != nil {
+	// 	c.String(http.StatusBadRequest, err.Error())
+	// 	return
+	// }
 	c.Status(http.StatusTemporaryRedirect)
-	c.Header("Location", longURL)
+	//c.Header("Location", longURL)
+	c.Header("Location", "sdfsdfsdfsdfsdf")
 }
 
 //=================================================================
