@@ -146,13 +146,13 @@ func AuthMiddleware(h *Handler) gin.HandlerFunc {
 //=================================================================
 func (h *Handler) HandlerURLRelocation(c *gin.Context) {
 	log.Println("GET hanler")
-	id := c.Param("id")
-	longURL, err := h.service.GetURL(id)
-
-	if err != nil {
-		c.String(http.StatusBadRequest, err.Error())
-		return
-	}
+	//id := c.Param("id")
+	//longURL, err := h.service.GetURL(id)
+	longURL := "ffgdfgdfg"
+	// if err != nil {
+	// 	c.String(http.StatusBadRequest, err.Error())
+	// 	return
+	// }
 	c.Status(http.StatusTemporaryRedirect)
 	c.Header("Location", longURL)
 }
