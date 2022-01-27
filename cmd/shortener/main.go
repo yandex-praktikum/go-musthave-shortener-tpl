@@ -9,6 +9,7 @@ import (
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/app/service"
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/handler"
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository"
+	"github.com/gin-gonic/gin"
 
 	_ "github.com/lib/pq"
 )
@@ -28,7 +29,21 @@ func main() {
 	s := service.NewService(r, config)
 	h := handler.NewHandler(s)
 
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
+
+	//	r.Use(AuthMiddleware(h))
+	router.GET("/:id", h.HandlerURLRelocation)
+	router.GET("user/urls")
+	router.GET("api/shorten/batch")
+	router.GET("/ping", h.HandlerPingDB)
+	router.POST("/", h.HandlerPost)
+	router.POST("/api/shorten", h.HandlerPost)
+	router.NoRoute(func(c *gin.Context) { c.String(http.StatusBadRequest, "Not allowed requset") })
+
 	//start server
-	httpServer := &http.Server{Addr: config.ServerAdress, Handler: h.InitRoutes()}
-	httpServer.ListenAndServe()
+	router.Run(config.ServerAdress)
+
 }
