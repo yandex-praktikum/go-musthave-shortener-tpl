@@ -31,8 +31,8 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
-	router.Use(gin.Logger())
-	router.Use(gin.Recovery())
+	//router.Use(gin.Logger())
+	//router.Use(gin.Recovery())
 
 	//router.Use(handler.AuthMiddleware(h))
 
@@ -41,8 +41,8 @@ func main() {
 	//router.GET("api/shorten/batch")
 	//router.GET("/ping", h.HandlerPingDB)
 	router.POST("/", h.HandlerPost)
-	router.POST("/api/shorten", h.HandlerPost)
-	router.NoRoute(func(c *gin.Context) { c.String(http.StatusBadRequest, "Not allowed requset") })
+	//	router.POST("/api/shorten", h.HandlerPost)
+	//	router.NoRoute(func(c *gin.Context) { c.String(http.StatusBadRequest, "Not allowed requset") })
 
 	//start server
 	router.Run(config.ServerAdress)
