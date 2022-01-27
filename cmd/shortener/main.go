@@ -39,8 +39,12 @@ func main() {
 	router.GET("/:id", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"hello": "world"})
 	})
-	router.GET("user/urls")
-	router.GET("api/shorten/batch")
+	router.GET("user/urls", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"hello": "world"})
+	})
+	router.GET("api/shorten/batch", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"hello": "world"})
+	})
 	router.GET("/ping", h.HandlerPingDB)
 	router.POST("/", h.HandlerPost)
 	router.POST("/api/shorten", h.HandlerPost)
