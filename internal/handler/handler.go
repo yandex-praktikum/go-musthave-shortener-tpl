@@ -3,6 +3,7 @@ package handler
 import (
 	"compress/gzip"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -98,13 +99,14 @@ func renderResponse(c *gin.Context, response *Response) {
 		gz := gzip.NewWriter(c.Writer)
 		defer gz.Close()
 		gz.Write([]byte(response.ShortURL))
-		c.Writer.Header().Set("Content-Encoding", "gzip")
+		c.Writer.Header().Set("Content-Encoding", "sdfsdf")
 		c.Writer.Header().Set("Content-Type", "application/x-gzip")
 
 	} else {
+		fmt.Println(c.Request.Header.Get("content-type"))
 		switch c.Request.Header.Get("content-type") {
 		case "application/json":
-			c.JSON(http.StatusCreated, response.ShortURL)
+			c.JSON(http.StatusCreated, response)
 		case "text/plain":
 			c.String(http.StatusCreated, response.ShortURL)
 		default:
