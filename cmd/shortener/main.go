@@ -36,9 +36,9 @@ func main() {
 
 	//	r.Use(AuthMiddleware(h))
 	router.GET("/:id", h.HandlerURLRelocation)
-	router.GET("user/urls")
-	router.GET("api/shorten/batch")
-	router.GET("/ping", h.HandlerPingDB)
+	//router.GET("user/urls")
+	//router.GET("api/shorten/batch")
+	//router.GET("/ping", h.HandlerPingDB)
 	router.POST("/", h.HandlerPost)
 	router.POST("/api/shorten", h.HandlerPost)
 	router.NoRoute(func(c *gin.Context) { c.String(http.StatusBadRequest, "Not allowed requset") })
