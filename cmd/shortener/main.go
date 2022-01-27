@@ -23,7 +23,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// repository.Migration(config)
+	repository.Migration(config)
 
 	r := repository.NewStorage(db)
 	s := service.NewService(r, config)
@@ -36,11 +36,11 @@ func main() {
 	router.Use(gin.Recovery())
 
 	//router.Use(handler.AuthMiddleware(h))
-	router.GET("/:id", func(c *gin.Context) { c.String(http.StatusFound, "dfgdfg") })
+	router.GET("/:id", h.HandlerURLRelocation)
 	router.GET("user/urls")
 	router.GET("api/shorten/batch")
 	router.GET("/ping", h.HandlerPingDB)
-	router.POST("/", func(c *gin.Context) { c.String(http.StatusFound, "dfgdfg") })
+	router.POST("/", h.HandlerPost)
 	router.POST("/api/shorten", h.HandlerPost)
 	router.NoRoute(func(c *gin.Context) { c.String(http.StatusBadRequest, "Not allowed requset") })
 
