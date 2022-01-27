@@ -113,24 +113,7 @@ func renderResponse(c *gin.Context, response *Response) {
 	}
 }
 
-//=================================================================
-func (h *Handler) InitRoutes() *gin.Engine {
-	gin.SetMode(gin.ReleaseMode)
-	r := gin.New()
-	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
-	//	r.Use(AuthMiddleware(h))
-	r.GET("/:id", h.HandlerURLRelocation)
-	r.GET("user/urls")
-	r.GET("api/shorten/batch")
-	r.GET("/ping", h.HandlerPingDB)
-	r.POST("/", h.HandlerPost)
-	r.POST("/api/shorten", h.HandlerPost)
-	r.NoRoute(func(c *gin.Context) { c.String(http.StatusBadRequest, "Not allowed requset") })
-	return r
-}
-
-//=================================================================
+//==================================================
 
 func AuthMiddleware(h *Handler) gin.HandlerFunc {
 
