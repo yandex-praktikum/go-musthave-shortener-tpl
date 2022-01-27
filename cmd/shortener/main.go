@@ -36,7 +36,7 @@ func main() {
 	//router.Use(gin.Recovery())
 
 	//router.Use(handler.AuthMiddleware(h))
-	router.GET("/id", func(c *gin.Context) { c.String(http.StatusBadRequest, "Not allowed requset") })
+	router.GET("/:id", func(c *gin.Context) { c.String(http.StatusFound, "") })
 	//router.GET("user/urls")
 	//router.GET("api/shorten/batch")
 	//router.GET("/ping", h.HandlerPingDB)
