@@ -144,15 +144,12 @@ func AuthMiddleware(h *Handler) gin.HandlerFunc {
 
 //=================================================================
 func (h *Handler) HandlerURLRelocation(c *gin.Context) {
-	scheme := c.Request.URL.Scheme
-	fmt.Println(scheme)
-	//id := c.Param("id")
-	//longURL, err := h.service.GetURL(id)
-	longURL := "https://github.com/EMus88/go-musthave-shortener-tpl"
-	// if err != nil {
-	// 	c.String(http.StatusBadRequest, err.Error())
-	// 	return
-	// }
+	id := c.Param("id")
+	longURL, err := h.service.GetURL(id)
+	if err != nil {
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
 	c.Redirect(http.StatusTemporaryRedirect, longURL)
 }
 
