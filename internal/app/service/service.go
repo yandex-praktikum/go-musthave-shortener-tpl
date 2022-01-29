@@ -100,8 +100,8 @@ func (s *Service) SaveBatch(list []model.BatchRequest, sessionID string) (*[]mod
 		response = append(response, responseModel)
 		batch = append(batch, shortModel)
 	}
-
-	if err := s.Repository.SaveBatch(&batch, sessionID); err != nil {
+	key, _ := s.Auth.ReadSessionID(sessionID)
+	if err := s.Repository.SaveBatch(&batch, key); err != nil {
 		return nil, err
 	}
 
