@@ -66,7 +66,7 @@ func TestHandler_HandlerPostText(t *testing.T) {
 			gin.SetMode(gin.ReleaseMode)
 			router := gin.Default()
 
-			router.POST("/", h.HandlerPost)
+			router.POST("/", h.HandlerPostURL)
 
 			req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(tt.requestBody))
 			w := httptest.NewRecorder()
@@ -125,7 +125,7 @@ func TestHandler_HandlerPostJSON(t *testing.T) {
 			gin.SetMode(gin.ReleaseMode)
 			router := gin.Default()
 
-			router.POST("/api/shorten", h.HandlerPost)
+			router.POST("/api/shorten", h.HandlerPostURL)
 
 			body, err := json.Marshal(tt)
 			if err != nil {

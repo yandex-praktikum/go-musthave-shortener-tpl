@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"log"
 
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository/model"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
 )
@@ -16,7 +18,7 @@ func NewStorage(pool *pgxpool.Pool) *Storage {
 	return &Storage{DBCon: pool}
 }
 
-func (us *Storage) SaveURL(m *model.Shorten, key string) error {
+func (us *Storage) SaveURL(m *model.ShortenDTO, key string) error {
 	var id int
 	q := `insert into shortens
 	  (url_id,short_url,long_url,session_id)
@@ -29,6 +31,27 @@ func (us *Storage) SaveURL(m *model.Shorten, key string) error {
 	if id == 0 {
 		return errors.New("Data was not saved")
 	}
+	return nil
+}
+func (us *Storage) SaveBatch(list *[]model.ShortenDTO, key string) error {
+	log.Println(key)
+	q := `insert into shortens
+	  (url_id,short_url,long_url,session_id)
+	  values
+	  ($1,$2,$3,
+	  (select id from sessions where session_id=$4));`
+
+	batch := &pgx.Batch{}
+	for _, val := range *list {
+		batch.Queue(q, val.URLID, val.ShortURL, val.LongURL, key)
+	}
+	br := us.DBCon.SendBatch(context.Background(), batch)
+	_, err := br.Exec()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
 	return nil
 }
 
@@ -70,8 +93,8 @@ func (us *Storage) GetCookie(s string) bool {
 	return isFound
 }
 
-func (us *Storage) GetList(key string) ([]model.Shorten, error) {
-	var list []model.Shorten
+func (us *Storage) GetList(key string) ([]model.ShortenDTO, error) {
+	var list []model.ShortenDTO
 	q := `SELECT short_url, long_url 
 		FROM shortens 
 	WHERE 
@@ -81,7 +104,7 @@ func (us *Storage) GetList(key string) ([]model.Shorten, error) {
 		return nil, err
 	}
 	for rows.Next() {
-		var model model.Shorten
+		var model model.ShortenDTO
 
 		err := rows.Scan(&model.ShortURL, &model.LongURL)
 		if err != nil {

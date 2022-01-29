@@ -13,12 +13,13 @@ import (
 )
 
 type Repository interface {
-	SaveURL(shortModel *model.Shorten, sessionID string) error
+	SaveURL(shortModel *model.ShortenDTO, sessionID string) error
 	GetURL(id string) string
 	PingDB() error
 	GetCookie(s string) bool
 	SaveCookie(s string) error
-	GetList(key string) ([]model.Shorten, error)
+	GetList(key string) ([]model.ShortenDTO, error)
+	SaveBatch(list *[]model.ShortenDTO, sessionID string) error
 }
 type Service struct {
 	Repository
@@ -32,7 +33,7 @@ func NewService(repos *repository.Storage, config *configs.Config) *Service {
 
 //save long URL in stotage and return short URL
 func (s *Service) SaveURL(longURL string, sessionID string) (string, error) {
-	var shortModel model.Shorten
+	var shortModel model.ShortenDTO
 	shortModel.URLID = idgenerator.CreateID(8)
 	shortModel.ShortURL = fmt.Sprint(s.Config.BaseURL, "/", shortModel.URLID)
 	shortModel.LongURL = longURL
@@ -80,20 +81,29 @@ func (s *Service) CreateNewSession() (string, error) {
 
 	return encID, nil
 }
+func (s *Service) SaveBatch(list []model.BatchRequest, sessionID string) (*[]model.BatchResponse, error) {
+	var batch []model.ShortenDTO
+	var response []model.BatchResponse
 
-// func (s *Service) LoadFromFile() {
+	for _, val := range list {
 
-// 	var model model.File
-// 	file, err := os.ReadFile(s.Config.FileStoragePath)
-// 	if err != nil {
-// 		return
-// 	}
-// 	str := strings.Split(string(file), "}")
-// 	for i := 0; i < (len(str) - 1); i++ {
+		var shortModel model.ShortenDTO
+		var responseModel model.BatchResponse
 
-// 		if err := json.Unmarshal([]byte(str[i]+"}"), &model); err != nil {
-// 			log.Fatal(err)
-// 		}
-// 		s.Repository.SaveURL(model.ID, model.LongURL)
-// 	}
-// }
+		shortModel.URLID = idgenerator.CreateID(8)
+		shortModel.ShortURL = fmt.Sprint(s.Config.BaseURL, "/", shortModel.URLID)
+		shortModel.LongURL = val.OriginalURL
+
+		responseModel.CorrelationID = val.CorrelationID
+		responseModel.ShortURL = shortModel.ShortURL
+
+		response = append(response, responseModel)
+		batch = append(batch, shortModel)
+	}
+
+	if err := s.Repository.SaveBatch(&batch, sessionID); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}

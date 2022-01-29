@@ -45,9 +45,9 @@ func main() {
 	router.GET("user/urls", h.HandlerGetList)
 	router.GET("/ping", h.HandlerPingDB)
 
-	router.POST("/", h.HandlerPost)
-	router.POST("/api/shorten", h.HandlerPost)
-	router.POST("api/shorten/batch")
+	router.POST("/", h.HandlerPostURL)
+	router.POST("/api/shorten", h.HandlerPostURL)
+	router.POST("api/shorten/batch", h.HandlerSaveBatch)
 
 	router.NoRoute(func(c *gin.Context) { c.String(http.StatusBadRequest, "Not allowed requset") })
 

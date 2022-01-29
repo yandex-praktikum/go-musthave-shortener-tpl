@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/app/service"
+	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository/model"
 	"github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,7 @@ type Handler struct {
 	service   *service.Service
 	publicKey string
 }
+
 type Request struct {
 	LongURL string `json:"url"  binding:"required"`
 	body    []byte
@@ -218,6 +220,28 @@ func (h *Handler) HandlerGetList(c *gin.Context) {
 }
 
 //=================================================================
+func (h *Handler) HandlerSaveBatch(c *gin.Context) {
+	var model []model.BatchRequest
+	if err := c.ShouldBindJSON(&model); err != nil {
+		c.String(http.StatusBadRequest, "Not allowed request")
+		return
+	}
+	list, err := h.service.SaveBatch(model, h.publicKey)
+
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Internal error")
+		return
+	}
+
+	data, err := json.Marshal(list)
+	if err != nil {
+		c.String(http.StatusNoContent, "Not found data")
+		return
+	}
+	c.Data(http.StatusOK, gin.MIMEJSON, data)
+}
+
+//=================================================================
 func (h *Handler) HandlerPingDB(c *gin.Context) {
 	if err := h.service.Repository.PingDB(); err != nil {
 		c.String(http.StatusInternalServerError, "DB connection is not available")
@@ -226,7 +250,7 @@ func (h *Handler) HandlerPingDB(c *gin.Context) {
 }
 
 //==================================================================
-func (h *Handler) HandlerPost(c *gin.Context) {
+func (h *Handler) HandlerPostURL(c *gin.Context) {
 	request, err := parseRequest(c)
 	if err != nil {
 		c.String(http.StatusBadRequest, "error: Not Allowd request")
