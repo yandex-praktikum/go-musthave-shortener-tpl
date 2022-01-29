@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	_ "sync"
 
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository/model"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -10,11 +9,11 @@ import (
 )
 
 type Storage struct {
-	DBCon pgxpool.Pool
+	DBCon *pgxpool.Pool
 }
 
 func NewStorage(pool *pgxpool.Pool) *Storage {
-	return &Storage{DBCon: *pool}
+	return &Storage{DBCon: pool}
 }
 
 func (us *Storage) SaveURL(m *model.Shorten, key string) error {

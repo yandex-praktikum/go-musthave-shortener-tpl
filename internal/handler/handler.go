@@ -100,7 +100,7 @@ func renderResponse(c *gin.Context, response *Response) {
 		gz := gzip.NewWriter(c.Writer)
 		defer gz.Close()
 		gz.Write([]byte(response.ShortURL))
-		c.Writer.Header().Set("Content-Encoding", "sdfsdf")
+		c.Writer.Header().Set("Content-Encoding", "gzip")
 		c.Writer.Header().Set("Content-Type", "application/x-gzip")
 
 	} else {
