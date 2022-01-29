@@ -28,6 +28,6 @@ func Migration(conf *configs.Config) {
 	defer db.Close()
 
 	db.AutoMigrate(&model.Shorten{}, &model.Session{})
-	//db.Model(&model.Shorten{}).AddForeignKey("session_ID", "Sessions(id)", "RESTRICT", "RESTRICT")
+	db.Model(&model.Shorten{}).AddForeignKey("session_ID", "Sessions(id)", "RESTRICT", "RESTRICT")
 	log.Println("Migration succes")
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/EMus88/go-musthave-shortener-tpl/configs"
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository"
@@ -10,11 +11,11 @@ import (
 )
 
 type Repository interface {
-	SaveURL(shortModel *model.Shorten) (string, error)
+	SaveURL(shortModel *model.Shorten, sessionID string) error
 	GetURL(id string) string
 	PingDB() error
-	GetCookieID(s string) int
-	SaveCookie(s string) (int, error)
+	GetCookie(s string) bool
+	SaveCookie(s string) error
 }
 type Service struct {
 	Repository
@@ -32,10 +33,10 @@ func (s *Service) SaveURL(longURL string, sessionID string) (string, error) {
 	shortModel.URLID = idgenerator.CreateID(8)
 	shortModel.ShortURL = fmt.Sprint(s.Config.BaseURL, "/", shortModel.URLID)
 	shortModel.LongURL = longURL
-	shortModel.SessionID = 4
 
-	shortURL, err := s.Repository.SaveURL(&shortModel)
-	if err != nil {
+	key, _ := s.Auth.ReadSessionID(sessionID)
+
+	if err := s.Repository.SaveURL(&shortModel, key); err != nil {
 		return "", err
 	}
 
@@ -55,13 +56,25 @@ func (s *Service) SaveURL(longURL string, sessionID string) (string, error) {
 	// }
 	// file.Write(data)
 
-	return shortURL, nil
+	return shortModel.ShortURL, nil
 }
 
 //get long URL from stotage by short URL
 func (s *Service) GetURL(key string) (string, error) {
 	originURL := s.Repository.GetURL(key)
 	return originURL, nil
+}
+
+func (s *Service) CreateNewSession() (string, error) {
+	id, encID, err := s.Auth.CreateSissionID()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := s.Repository.SaveCookie(id); err != nil {
+		return "", err
+	}
+
+	return encID, nil
 }
 
 // func (s *Service) LoadFromFile() {

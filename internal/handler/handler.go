@@ -2,8 +2,8 @@ package handler
 
 import (
 	"compress/gzip"
+	"encoding/hex"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -119,23 +119,69 @@ func renderResponse(c *gin.Context, response *Response) {
 func AuthMiddleware(h *Handler) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
-		sessionID, err := c.Cookie("session")
-
-		//validation session value
-		//var id int = h.service.Repository.GetCookieID("sdfsdfsdf")
-		//fmt.Println(id)
-
-		if err != nil {
-			if !errors.Is(err, http.ErrNoCookie) {
-				log.Fatal(err)
+		sessionID, cookieErr := c.Cookie("session")
+		log.Println("Read cookie: ", sessionID)
+		//if cookie is empty
+		if cookieErr != nil {
+			if !errors.Is(cookieErr, http.ErrNoCookie) {
+				c.String(http.StatusInternalServerError, "Auth error")
+				log.Fatal(cookieErr)
 			}
-			_, encID, err := h.service.Auth.CreateSissionID()
+			//create new cookie
+			encID, err := h.service.CreateNewSession()
+
 			if err != nil {
+				c.String(http.StatusInternalServerError, "Auth error")
 				log.Fatal(err)
 			}
 			sessionID = encID
-		}
+			//if cookie is not empty
+		} else {
+			//validation seesion value
+			isValid := true
+			byteID, DecErr := hex.DecodeString(sessionID)
+			if DecErr != nil || len(byteID) != 16 {
+				isValid = false
+			}
+			//if cookie value is valid
+			if isValid {
+				//read non-public key
+				key, err := h.service.Auth.ReadSessionID(sessionID)
+				if err != nil {
+					//create new cookie
+					encID, err := h.service.CreateNewSession()
+					if err != nil {
+						c.String(http.StatusInternalServerError, "Auth error")
+						log.Fatal(err)
+					}
+					sessionID = encID
+				} else {
+					//try find non-public key in data base
+					var isFound bool = h.service.Repository.GetCookie(key)
+					//if non-public key was not found
+					if !isFound {
+						//create new cookie
+						encID, err := h.service.CreateNewSession()
+						if err != nil {
+							c.String(http.StatusInternalServerError, "Auth error")
+							log.Fatal(err)
+						}
+						sessionID = encID
 
+					}
+				}
+				//if cookie value is not valid
+			} else {
+				//create new cookie
+				encID, err := h.service.CreateNewSession()
+				if err != nil {
+					c.String(http.StatusInternalServerError, "Auth error")
+					log.Fatal(err)
+				}
+				sessionID = encID
+			}
+
+		}
 		c.SetCookie("session", sessionID, 3600, "", "localhost", false, true)
 
 		c.Next()
@@ -163,15 +209,13 @@ func (h *Handler) HandlerPingDB(c *gin.Context) {
 
 //==================================================================
 func (h *Handler) HandlerPost(c *gin.Context) {
-	scheme := c.Request.URL.Scheme
-	fmt.Println(scheme)
 	request, err := parseRequest(c)
 	if err != nil {
 		c.String(http.StatusBadRequest, "error: Not Allowd request")
 		return
 	}
-
-	shortURL, err := h.service.SaveURL(string(request.body), h.sessionID)
+	sessionID, _ := c.Cookie("session")
+	shortURL, err := h.service.SaveURL(string(request.body), sessionID)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "error: Internal error")
 	}
