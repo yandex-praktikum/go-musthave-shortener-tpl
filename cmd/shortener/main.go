@@ -16,19 +16,23 @@ import (
 
 func main() {
 
+	//set new configuraion
 	config := configs.NewConfig()
 
+	//init data base connection
 	db, err := repository.NewDBClient(context.TODO(), config)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	//creat tables in data bese by migration models
 	repository.Migration(config)
 
+	//init main modelus
 	r := repository.NewStorage(db)
 	s := service.NewService(r, config)
 	h := handler.NewHandler(s)
 
+	//set server settings
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
@@ -36,14 +40,15 @@ func main() {
 	router.Use(gin.Recovery())
 
 	router.Use(handler.AuthMiddleware(h))
+
 	router.GET("/:id", h.HandlerURLRelocation)
 	router.GET("user/urls", h.HandlerGetList)
-	router.GET("api/shorten/batch", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"hello": "world"})
-	})
 	router.GET("/ping", h.HandlerPingDB)
+
 	router.POST("/", h.HandlerPost)
 	router.POST("/api/shorten", h.HandlerPost)
+	router.POST("api/shorten/batch")
+
 	router.NoRoute(func(c *gin.Context) { c.String(http.StatusBadRequest, "Not allowed requset") })
 
 	//start server

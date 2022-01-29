@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	_ "sync"
 
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository/model"
 	"github.com/jackc/pgx/v4/pgxpool"
