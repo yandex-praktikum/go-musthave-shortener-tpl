@@ -34,7 +34,6 @@ func (us *Storage) SaveURL(m *model.ShortenDTO, key string) error {
 	return nil
 }
 func (us *Storage) SaveBatch(list *[]model.ShortenDTO, key string) error {
-	log.Println(key)
 	q := `insert into shortens
 	  (url_id,short_url,long_url,session_id)
 	  values

@@ -238,7 +238,7 @@ func (h *Handler) HandlerSaveBatch(c *gin.Context) {
 		c.String(http.StatusNoContent, "Not found data")
 		return
 	}
-	c.Data(http.StatusOK, gin.MIMEJSON, data)
+	c.Data(http.StatusCreated, gin.MIMEJSON, data)
 }
 
 //=================================================================
