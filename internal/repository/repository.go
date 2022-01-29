@@ -89,5 +89,8 @@ func (us *Storage) GetList(key string) ([]model.Shorten, error) {
 		}
 		list = append(list, model)
 	}
+	if len(list) == 0 {
+		return nil, errors.New("Not foud data")
+	}
 	return list, nil
 }

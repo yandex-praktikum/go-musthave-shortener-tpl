@@ -157,7 +157,7 @@ func AuthMiddleware(h *Handler) gin.HandlerFunc {
 					sessionID = encID
 				} else {
 					//try find non-public key in data base
-					var isFound bool = h.service.Repository.GetCookie(key)
+					isFound := h.service.Repository.GetCookie(key)
 					//if non-public key was not found
 					if !isFound {
 						//create new cookie
