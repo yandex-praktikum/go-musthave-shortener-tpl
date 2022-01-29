@@ -3,6 +3,7 @@ package handler
 import (
 	"compress/gzip"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"log"
@@ -197,6 +198,23 @@ func (h *Handler) HandlerURLRelocation(c *gin.Context) {
 		return
 	}
 	c.Redirect(http.StatusTemporaryRedirect, longURL)
+}
+
+//=================================================================
+func (h *Handler) HandlerGetList(c *gin.Context) {
+
+	key, _ := h.service.Auth.ReadSessionID(h.publicKey)
+	list, err := h.service.Repository.GetList(key)
+	if err != nil {
+		c.String(http.StatusNoContent, "Not found data")
+		return
+	}
+	data, err := json.Marshal(list)
+	if err != nil {
+		c.String(http.StatusNoContent, "Not found data")
+	}
+	c.Data(http.StatusOK, gin.MIMEJSON, data)
+
 }
 
 //=================================================================

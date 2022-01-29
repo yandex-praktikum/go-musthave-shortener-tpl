@@ -1,8 +1,10 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/EMus88/go-musthave-shortener-tpl/configs"
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository"
@@ -16,6 +18,7 @@ type Repository interface {
 	PingDB() error
 	GetCookie(s string) bool
 	SaveCookie(s string) error
+	GetList(key string) ([]model.Shorten, error)
 }
 type Service struct {
 	Repository
@@ -41,20 +44,21 @@ func (s *Service) SaveURL(longURL string, sessionID string) (string, error) {
 	}
 
 	//save to file
-	// file, err := os.OpenFile(s.Config.FileStoragePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
-	// if err != nil {
-	// 	return "", err
-	// }
-	// defer file.Close()
+	var model model.FileModel
+	file, err := os.OpenFile(s.Config.FileStoragePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
 
-	// s.Model.ID = key
-	// s.Model.LongURL = value
+	model.ID = key
+	model.LongURL = longURL
 
-	// data, err := json.MarshalIndent(s.Model, "", " ")
-	// if err != nil {
-	// 	return "", err
-	// }
-	// file.Write(data)
+	data, err := json.MarshalIndent(model, "", " ")
+	if err != nil {
+		return "", err
+	}
+	file.Write(data)
 
 	return shortModel.ShortURL, nil
 }

@@ -61,11 +61,33 @@ func (us *Storage) GetCookie(s string) bool {
 	var isFound bool
 	var id int
 	q := `SELECT id FROM sessions
-	 WHERE 
+	 	WHERE 
 	session_id= $1;`
 	us.DBCon.QueryRow(context.Background(), q, s).Scan(&id)
 	if id != 0 {
 		isFound = true
 	}
 	return isFound
+}
+
+func (us *Storage) GetList(key string) ([]model.Shorten, error) {
+	var list []model.Shorten
+	q := `SELECT short_url, long_url 
+		FROM shortens 
+	WHERE 
+		session_id=(select id from sessions where session_id =$1)`
+	rows, err := us.DBCon.Query(context.Background(), q, key)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var model model.Shorten
+
+		err := rows.Scan(&model.ShortURL, &model.LongURL)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, model)
+	}
+	return list, nil
 }

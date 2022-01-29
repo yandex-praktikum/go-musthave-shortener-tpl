@@ -6,9 +6,9 @@ type Session struct {
 }
 
 type Shorten struct {
-	ID        int    `gorm:"primary_key;auto_increment;unique"`
-	URLID     string `gorm:"type:varchar(255);not null;unique"`
-	ShortURL  string `gorm:"type:varchar(255);not null"`
-	LongURL   string `gorm:"type:varchar(255);not null"`
-	SessionID int    `gorm:"type:int;not null"`
+	ID        int    `gorm:"primary_key;auto_increment;unique" json:"-"`
+	URLID     string `gorm:"type:varchar(255);not null;unique" json:"-"`
+	ShortURL  string `gorm:"type:varchar(255);not null" json:"short_url"`
+	LongURL   string `gorm:"type:varchar(255);not null" json:"original_ url"`
+	SessionID int    `gorm:"type:int;not null" json:"-"`
 }

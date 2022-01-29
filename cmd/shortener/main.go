@@ -37,9 +37,7 @@ func main() {
 
 	router.Use(handler.AuthMiddleware(h))
 	router.GET("/:id", h.HandlerURLRelocation)
-	router.GET("user/urls", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"hello": "world"})
-	})
+	router.GET("user/urls", h.HandlerGetList)
 	router.GET("api/shorten/batch", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"hello": "world"})
 	})
