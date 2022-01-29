@@ -16,7 +16,7 @@ import (
 
 type Handler struct {
 	service   *service.Service
-	sessionID string
+	publicKey string
 }
 type Request struct {
 	LongURL string `json:"url"  binding:"required"`
@@ -120,7 +120,6 @@ func AuthMiddleware(h *Handler) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		sessionID, cookieErr := c.Cookie("session")
-		log.Println("Read cookie: ", sessionID)
 		//if cookie is empty
 		if cookieErr != nil {
 			if !errors.Is(cookieErr, http.ErrNoCookie) {
@@ -182,6 +181,7 @@ func AuthMiddleware(h *Handler) gin.HandlerFunc {
 			}
 
 		}
+		h.publicKey = sessionID
 		c.SetCookie("session", sessionID, 3600, "", "localhost", false, true)
 
 		c.Next()
@@ -214,8 +214,7 @@ func (h *Handler) HandlerPost(c *gin.Context) {
 		c.String(http.StatusBadRequest, "error: Not Allowd request")
 		return
 	}
-	sessionID, _ := c.Cookie("session")
-	shortURL, err := h.service.SaveURL(string(request.body), sessionID)
+	shortURL, err := h.service.SaveURL(string(request.body), h.publicKey)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "error: Internal error")
 	}
