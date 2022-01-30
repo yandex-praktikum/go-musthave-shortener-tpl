@@ -251,6 +251,9 @@ func (h *Handler) HandlerPingDB(c *gin.Context) {
 
 //==================================================================
 func (h *Handler) HandlerPostURL(c *gin.Context) {
+	if c.Request.URL.Path == "/api/shorten" {
+		c.Header("content-type", "application/json")
+	}
 	request, err := parseRequest(c)
 	if err != nil {
 		c.String(http.StatusBadRequest, "error: Not Allowd request")
