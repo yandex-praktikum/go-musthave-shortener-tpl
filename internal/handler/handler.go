@@ -261,13 +261,11 @@ func (h *Handler) HandlerPostURL(c *gin.Context) {
 	}
 	shortURL, err := h.service.SaveURL(string(request.body), h.publicKey)
 	if err != nil {
-		log.Println(err)
 		if errors.Is(err, errors.Unwrap(err)) {
 			c.String(http.StatusConflict, "")
 			var response Response
 			response.ShortURL = shortURL
 			renderResponse(c, &response)
-			log.Println("this ", shortURL)
 		} else {
 			c.String(http.StatusInternalServerError, "error: Internal error")
 		}
