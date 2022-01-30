@@ -13,7 +13,7 @@ import (
 )
 
 type Repository interface {
-	SaveURL(shortModel *model.ShortenDTO, sessionID string) error
+	SaveURL(shortModel *model.ShortenDTO, sessionID string) (string, error)
 	GetURL(id string) string
 	PingDB() error
 	GetCookie(s string) bool
@@ -40,8 +40,9 @@ func (s *Service) SaveURL(longURL string, sessionID string) (string, error) {
 
 	key, _ := s.Auth.ReadSessionID(sessionID)
 
-	if err := s.Repository.SaveURL(&shortModel, key); err != nil {
-		return "", err
+	shortURL, err := s.Repository.SaveURL(&shortModel, key)
+	if err != nil {
+		return shortURL, err
 	}
 
 	//save to file
@@ -60,8 +61,7 @@ func (s *Service) SaveURL(longURL string, sessionID string) (string, error) {
 		return "", err
 	}
 	file.Write(data)
-
-	return shortModel.ShortURL, nil
+	return shortURL, nil
 }
 
 //get long URL from stotage by short URL

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository/model"
@@ -18,20 +19,29 @@ func NewStorage(pool *pgxpool.Pool) *Storage {
 	return &Storage{DBCon: pool}
 }
 
-func (us *Storage) SaveURL(m *model.ShortenDTO, key string) error {
+func (us *Storage) SaveURL(m *model.ShortenDTO, key string) (string, error) {
 	var id int
-	q := `insert into shortens
+	var shortURL string
+	q := `INSERT INTO shortens
 	  (url_id,short_url,long_url,session_id)
-	  values
+	  VALUES
 	  ($1,$2,$3,
-	  (select id from sessions where session_id=$4))
-	  RETURNING id;`
+	  (SELECT id FROM sessions WHERE session_id=$4))
+	  ON CONFLICT (long_url) 
+	  DO UPDATE SET 
+	  long_url=EXCLUDED.long_url
+	  RETURNING id,short_url;`
 
-	us.DBCon.QueryRow(context.Background(), q, m.URLID, m.ShortURL, m.LongURL, key).Scan(&id)
+	us.DBCon.QueryRow(context.Background(), q, m.URLID, m.ShortURL, m.LongURL, key).Scan(&id, &shortURL)
 	if id == 0 {
-		return errors.New("Data was not saved")
+		return "", errors.New("Internal error: Data was not saved")
 	}
-	return nil
+	if shortURL != m.ShortURL {
+		err := errors.New("Error: Attemt to save data, data already exist")
+		log.Println(err)
+		return shortURL, fmt.Errorf(`%w`, err)
+	}
+	return shortURL, nil
 }
 func (us *Storage) SaveBatch(list *[]model.ShortenDTO, key string) error {
 	q := `insert into shortens
@@ -47,9 +57,9 @@ func (us *Storage) SaveBatch(list *[]model.ShortenDTO, key string) error {
 	br := us.DBCon.SendBatch(context.Background(), batch)
 	_, err := br.Exec()
 	if err != nil {
-		log.Println(err)
 		return err
 	}
+	br.Close()
 
 	return nil
 }
