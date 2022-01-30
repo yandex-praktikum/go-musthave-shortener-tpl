@@ -7,16 +7,15 @@ import (
 
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository/model"
 	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
 )
 
 type Storage struct {
-	DBCon *pgxpool.Pool
+	client Client
 }
 
-func NewStorage(pool *pgxpool.Pool) *Storage {
-	return &Storage{DBCon: pool}
+func NewStorage(client Client) *Storage {
+	return &Storage{client: client}
 }
 
 func (us *Storage) SaveURL(m *model.ShortenDTO, key string) (string, error) {
@@ -32,7 +31,7 @@ func (us *Storage) SaveURL(m *model.ShortenDTO, key string) (string, error) {
 	  long_url=EXCLUDED.long_url
 	  RETURNING id,short_url;`
 
-	us.DBCon.QueryRow(context.Background(), q, m.URLID, m.ShortURL, m.LongURL, key).Scan(&id, &shortURL)
+	us.client.QueryRow(context.Background(), q, m.URLID, m.ShortURL, m.LongURL, key).Scan(&id, &shortURL)
 	if id == 0 {
 		return "", errors.New("Internal error: Data was not saved")
 	}
@@ -54,7 +53,7 @@ func (us *Storage) SaveBatch(list *[]model.ShortenDTO, key string) error {
 	for _, val := range *list {
 		batch.Queue(q, val.URLID, val.ShortURL, val.LongURL, key)
 	}
-	br := us.DBCon.SendBatch(context.Background(), batch)
+	br := us.client.SendBatch(context.Background(), batch)
 	_, err := br.Exec()
 	if err != nil {
 		return err
@@ -69,12 +68,12 @@ func (us *Storage) GetURL(key string) string {
 	q := `SELECT long_url FROM shortens
 	WHERE
 		url_id=$1;`
-	us.DBCon.QueryRow(context.Background(), q, key).Scan(&longURL)
+	us.client.QueryRow(context.Background(), q, key).Scan(&longURL)
 	return longURL
 }
 
 func (us *Storage) PingDB() error {
-	return us.DBCon.Ping(context.Background())
+	return us.client.Ping(context.Background())
 }
 
 func (us *Storage) SaveCookie(s string) error {
@@ -82,7 +81,7 @@ func (us *Storage) SaveCookie(s string) error {
 	q := `INSERT INTO sessions(session_id)
     VALUES($1)
 	RETURNING id;`
-	us.DBCon.QueryRow(context.Background(), q, s).Scan(&id)
+	us.client.QueryRow(context.Background(), q, s).Scan(&id)
 	if id == 0 {
 		return errors.New("Cookie is unsaved")
 	}
@@ -95,7 +94,7 @@ func (us *Storage) GetCookie(s string) bool {
 	q := `SELECT id FROM sessions
 	 	WHERE 
 	session_id= $1;`
-	us.DBCon.QueryRow(context.Background(), q, s).Scan(&id)
+	us.client.QueryRow(context.Background(), q, s).Scan(&id)
 	if id != 0 {
 		isFound = true
 	}
@@ -108,7 +107,7 @@ func (us *Storage) GetList(key string) ([]model.ShortenDTO, error) {
 		FROM shortens 
 	WHERE 
 		session_id=(select id from sessions where session_id =$1)`
-	rows, err := us.DBCon.Query(context.Background(), q, key)
+	rows, err := us.client.Query(context.Background(), q, key)
 	if err != nil {
 		return nil, err
 	}

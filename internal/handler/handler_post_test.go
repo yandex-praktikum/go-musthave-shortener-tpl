@@ -14,6 +14,7 @@ import (
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/magiconair/properties/assert"
+	"github.com/pashagolub/pgxmock"
 )
 
 func TestHandler_HandlerPostText(t *testing.T) {
@@ -41,9 +42,9 @@ func TestHandler_HandlerPostText(t *testing.T) {
 		},
 		{
 			name:        "test 3",
-			requestBody: "sdfsdfsdfsdfsdfsdf",
+			requestBody: "https://yandex.ru/search/?text=go&lr=11351&clid=9403sdfasdfasdfasdf",
 			want: want{
-				statusCode: http.StatusBadRequest,
+				statusCode: http.StatusConflict,
 			},
 		},
 	}
@@ -51,15 +52,14 @@ func TestHandler_HandlerPostText(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			config := configs.NewConfigForTest()
-
-			ctx := context.TODO()
-			db, err := repository.NewDBClient(ctx, config)
+			mock, err := pgxmock.NewPool()
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			r := repository.NewStorage(db)
+			config := configs.NewConfigForTest()
+
+			r := repository.NewStorage(mock)
 			s := service.NewService(r, config)
 			h := NewHandler(s)
 
