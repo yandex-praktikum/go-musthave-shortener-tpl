@@ -29,7 +29,7 @@ func TestHandler_HandlerPostText(t *testing.T) {
 		want    want
 	}{
 		{
-			name:    "test 1",
+			name:    "Ok",
 			ReqBody: "https://yandex.ru/search/test1",
 			want: want{
 				statusCode: http.StatusConflict,
@@ -37,7 +37,7 @@ func TestHandler_HandlerPostText(t *testing.T) {
 			},
 		},
 		{
-			name:    "test 2",
+			name:    "Bad request",
 			ReqBody: "sdfsfsdfsdf",
 			want: want{
 				statusCode: http.StatusBadRequest,
@@ -46,28 +46,28 @@ func TestHandler_HandlerPostText(t *testing.T) {
 		},
 	}
 
-	//init mock db connection
-	mock, err := pgxmock.NewConn()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer mock.Close(context.Background())
-
-	//init main components
-	config := configs.NewConfigForTest()
-	r := repository.NewStorage(mock)
-	s := service.NewService(r, config)
-	h := NewHandler(s)
-
-	//init server
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.Default()
-	router.Use(AuthMiddleware(h))
-	router.POST("/", h.HandlerPostURL)
-
 	//run tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
+			//init mock db connection
+			mock, err := pgxmock.NewConn()
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer mock.Close(context.Background())
+
+			//init main components
+			config := configs.NewConfigForTest()
+			r := repository.NewStorage(mock)
+			s := service.NewService(r, config)
+			h := NewHandler(s)
+
+			//init server
+			gin.SetMode(gin.ReleaseMode)
+			router := gin.Default()
+			router.Use(AuthMiddleware(h))
+			router.POST("/", h.HandlerPostURL)
 
 			//init http components
 			w := httptest.NewRecorder()
@@ -75,18 +75,18 @@ func TestHandler_HandlerPostText(t *testing.T) {
 			req := *httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(tt.ReqBody))
 
 			//set auth mock
-			rows := mock.NewRows([]string{"id"}).AddRow(1)
+			sesRows := mock.NewRows([]string{"id"}).AddRow(1)
 
 			mock.ExpectQuery("SELECT id FROM sessions").
 				WithArgs("43786d99935441d19fa91d029bf83878").
-				WillReturnRows(rows)
+				WillReturnRows(sesRows)
 
-			//set urlsaving mock
-			rows = mock.NewRows([]string{"id", "short_url"}).
+				//set urlsaving mock
+			urlRows := mock.NewRows([]string{"id", "short_url"}).
 				AddRow(1, "http://localhost:8080/b5a41593cf656026")
 
 			mock.ExpectQuery("INSERT INTO shortens").
-				WillReturnRows(rows)
+				WillReturnRows(urlRows)
 
 			//set content-type
 			req.Header.Set("content-type", "text/plain")

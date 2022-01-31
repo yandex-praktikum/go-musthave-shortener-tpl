@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -67,6 +68,9 @@ func (s *Service) SaveURL(longURL string, sessionID string) (string, error) {
 //get long URL from stotage by short URL
 func (s *Service) GetURL(key string) (string, error) {
 	originURL := s.Repository.GetURL(key)
+	if originURL == "" {
+		return "", errors.New("error: not found data")
+	}
 	return originURL, nil
 }
 

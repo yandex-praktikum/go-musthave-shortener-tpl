@@ -12,6 +12,7 @@ import (
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/magiconair/properties/assert"
+	"github.com/pashagolub/pgxmock"
 )
 
 func TestHandler_HandlerGet(t *testing.T) {
@@ -25,7 +26,7 @@ func TestHandler_HandlerGet(t *testing.T) {
 		want    want
 	}{
 		{
-			name:    "test 1",
+			name:    "Ok",
 			request: "/yandex",
 			want: want{
 				statusCode: http.StatusTemporaryRedirect,
@@ -33,15 +34,7 @@ func TestHandler_HandlerGet(t *testing.T) {
 			},
 		},
 		{
-			name:    "test 2",
-			request: "/wiki",
-			want: want{
-				statusCode: http.StatusTemporaryRedirect,
-				location:   "https://ru.wikipedia.org/wiki/Go",
-			},
-		},
-		{
-			name:    "test 3",
+			name:    "Bad request",
 			request: "/qwerty",
 			want: want{
 				statusCode: http.StatusBadRequest,
@@ -49,26 +42,35 @@ func TestHandler_HandlerGet(t *testing.T) {
 			},
 		},
 	}
-	config := configs.NewConfigForTest()
-
-	ctx := context.TODO()
-	db, err := repository.NewDBClient(ctx, config)
+	//init mock db connection
+	mock, err := pgxmock.NewConn()
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer mock.Close(context.Background())
 
-	storage := repository.NewStorage(db)
-	//storage.SaveURL("yandex", "https://yandex.ru/search/?text=go&lr=11351&clid=9403")
-	//storage.SaveURL("wiki", "https://ru.wikipedia.org/wiki/Go")
-
-	s := service.NewService(storage, config)
+	//init main components
+	config := configs.NewConfigForTest()
+	r := repository.NewStorage(mock)
+	s := service.NewService(r, config)
 	h := NewHandler(s)
 
+	//init server
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.GET("/:id", h.HandlerURLRelocation)
 
+	//run tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
+			//set mock
+			urlRows := mock.NewRows([]string{"long_url"}).
+				AddRow("https://yandex.ru/search/?text=go&lr=11351&clid=9403")
+
+			mock.ExpectQuery("SELECT long_url FROM shortens").
+				WithArgs("yandex").
+				WillReturnRows(urlRows)
 
 			req := httptest.NewRequest(http.MethodGet, tt.request, nil)
 			w := httptest.NewRecorder()
