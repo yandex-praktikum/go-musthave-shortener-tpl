@@ -47,7 +47,7 @@ func main() {
 
 	router.POST("/", h.HandlerPostURL)
 	router.POST("/api/shorten", h.HandlerPostURL)
-	router.POST("api/shorten/batch", h.HandlerSaveBatch)
+	router.POST("/api/shorten/batch", h.HandlerSaveBatch)
 
 	router.NoRoute(func(c *gin.Context) { c.String(http.StatusBadRequest, "Not allowed requset") })
 

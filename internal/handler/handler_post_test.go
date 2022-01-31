@@ -3,7 +3,7 @@ package handler
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -17,128 +17,108 @@ import (
 	"github.com/pashagolub/pgxmock"
 )
 
+//test for endpoint "/"
 func TestHandler_HandlerPostText(t *testing.T) {
 	type want struct {
 		statusCode int
+		body       string
 	}
 	tests := []struct {
-		name        string
-		requestBody string
-		want        want
+		name    string
+		ReqBody string
+		want    want
 	}{
 		{
-			name:        "test 1",
-			requestBody: "https://yandex.ru/search/?text=go&lr=11351&clid=9403sdfasdfasdfasdf",
-			want: want{
-				statusCode: http.StatusCreated,
-			},
-		},
-		{
-			name:        "test 2",
-			requestBody: "",
-			want: want{
-				statusCode: http.StatusBadRequest,
-			},
-		},
-		{
-			name:        "test 3",
-			requestBody: "https://yandex.ru/search/?text=go&lr=11351&clid=9403sdfasdfasdfasdf",
+			name:    "test 1",
+			ReqBody: "https://yandex.ru/search/test1",
 			want: want{
 				statusCode: http.StatusConflict,
+				body:       "http://localhost:8080/b5a41593cf656026",
+			},
+		},
+		{
+			name:    "test 2",
+			ReqBody: "sdfsfsdfsdf",
+			want: want{
+				statusCode: http.StatusBadRequest,
+				body:       "error: Not Allowd request",
 			},
 		},
 	}
 
+	//init mock db connection
+	mock, err := pgxmock.NewConn()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer mock.Close(context.Background())
+
+	//init main components
+	config := configs.NewConfigForTest()
+	r := repository.NewStorage(mock)
+	s := service.NewService(r, config)
+	h := NewHandler(s)
+
+	//init server
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.Default()
+	router.Use(AuthMiddleware(h))
+	router.POST("/", h.HandlerPostURL)
+
+	//run tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			mock, err := pgxmock.NewPool()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			config := configs.NewConfigForTest()
-
-			r := repository.NewStorage(mock)
-			s := service.NewService(r, config)
-			h := NewHandler(s)
-
-			gin.SetMode(gin.ReleaseMode)
-			router := gin.Default()
-
-			router.POST("/", h.HandlerPostURL)
-
-			req := httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(tt.requestBody))
+			//init http components
 			w := httptest.NewRecorder()
+
+			req := *httptest.NewRequest(http.MethodPost, "/", bytes.NewBufferString(tt.ReqBody))
+
+			//set auth mock
+			rows := mock.NewRows([]string{"id"}).AddRow(1)
+
+			mock.ExpectQuery("SELECT id FROM sessions").
+				WithArgs("43786d99935441d19fa91d029bf83878").
+				WillReturnRows(rows)
+
+			//set urlsaving mock
+			rows = mock.NewRows([]string{"id", "short_url"}).
+				AddRow(1, "http://localhost:8080/b5a41593cf656026")
+
+			mock.ExpectQuery("INSERT INTO shortens").
+				WillReturnRows(rows)
+
+			//set content-type
 			req.Header.Set("content-type", "text/plain")
-			router.ServeHTTP(w, req)
+
+			//set cookie
+			cookie := &http.Cookie{Name: "session", Value: "0ca876da1faed3aa87ae9d5ccfa5be17"}
+			req.AddCookie(cookie)
+
+			//run server
+			router.ServeHTTP(w, &req)
+
+			//read result
 			result := w.Result()
-			defer result.Body.Close()
-			assert.Equal(t, result.StatusCode, tt.want.statusCode)
-
-		})
-	}
-}
-func TestHandler_HandlerPostJSON(t *testing.T) {
-	type want struct {
-		statusCode int
-	}
-	tests := []struct {
-		name        string `json:"-"`
-		RequestBody string `json:"url"`
-		contentType string `json:"-"`
-		want        want   `json:"-"`
-	}{
-		{
-			name:        "test 1",
-			RequestBody: "https://yandex.ru/search/?text=go&lr=11351&clid=9403sdfasdfasdfasdf",
-			contentType: "application/json",
-			want: want{
-				statusCode: http.StatusCreated,
-			},
-		},
-		{
-			name:        "test 2",
-			RequestBody: "https://yandex.ru/search/?text=go&lr=11351&clid=9403sdfasdfasdfasdf",
-			contentType: "application/json",
-			want: want{
-				statusCode: http.StatusCreated,
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			config := configs.NewConfigForTest()
-
-			ctx := context.TODO()
-			db, err := repository.NewDBClient(ctx, config)
+			body, err := ioutil.ReadAll(result.Body)
 			if err != nil {
 				log.Fatal(err)
 			}
-
-			r := repository.NewStorage(db)
-			s := service.NewService(r, config)
-			h := NewHandler(s)
-
-			gin.SetMode(gin.ReleaseMode)
-			router := gin.Default()
-
-			router.POST("/api/shorten", h.HandlerPostURL)
-
-			body, err := json.Marshal(tt)
-			if err != nil {
-				log.Fatal(err)
-			}
-			req := httptest.NewRequest(http.MethodPost, "/api/shorten", bytes.NewBuffer(body))
-			w := httptest.NewRecorder()
-			req.Header.Set("content-type", tt.contentType)
-			router.ServeHTTP(w, req)
-			result := w.Result()
 			defer result.Body.Close()
 			assert.Equal(t, result.StatusCode, tt.want.statusCode)
-
+			assert.Equal(t, string(body), tt.want.body)
 		})
 	}
 }
+
+// case "application/json":
+// 	{
+// 		body, err := json.Marshal(tt)
+// 		if err != nil {
+// 			log.Fatal(err)
+// 		}
+
+// 		request := *httptest.NewRequest(http.MethodPost, tt.path, bytes.NewBuffer(body))
+// 		req = request
+// 	}
+// }

@@ -54,5 +54,6 @@ func NewConfigForTest() *Config {
 		ServerAdress:    "localhost:8080",
 		BaseURL:         "http://localhost:8080",
 		FileStoragePath: "urls.data",
+		DBConnectionStr: "postgres://user1:123@localhost:5432/mydb1",
 	}
 }
