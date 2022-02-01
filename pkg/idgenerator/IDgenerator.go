@@ -2,18 +2,17 @@ package idgenerator
 
 import (
 	"crypto/rand"
-	"fmt"
+	"encoding/hex"
 	"log"
 )
 
-func CreateID() string {
-	b := make([]byte, 8)
+func CreateID(size int) string {
+	b := make([]byte, size)
 	_, err := rand.Read(b)
 	if err != nil {
 		log.Fatal(err)
 	}
-	id := fmt.Sprintf("%x%x",
-		b[0:4], b[4:6])
+	id := hex.EncodeToString(b)
 	return id
 
 }
