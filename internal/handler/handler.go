@@ -205,18 +205,20 @@ func (h *Handler) HandlerURLRelocation(c *gin.Context) {
 //=================================================================
 func (h *Handler) HandlerGetList(c *gin.Context) {
 
+	//read non-public key
 	key, _ := h.service.Auth.ReadSessionID(h.publicKey)
+	//get list from DB
 	list, err := h.service.Repository.GetList(key)
 	if err != nil {
 		c.String(http.StatusNoContent, "Not found data")
 		return
 	}
+	//sent response
 	data, err := json.Marshal(list)
 	if err != nil {
 		c.String(http.StatusNoContent, "Not found data")
 	}
 	c.Data(http.StatusOK, gin.MIMEJSON, data)
-
 }
 
 //=================================================================
