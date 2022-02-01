@@ -186,7 +186,7 @@ func AuthMiddleware(h *Handler) gin.HandlerFunc {
 		}
 		h.publicKey = sessionID
 		c.SetCookie("session", sessionID, 3600, "", "localhost", false, true)
-
+		log.Println("Authentication success")
 		c.Next()
 	}
 }
@@ -246,7 +246,7 @@ func (h *Handler) HandlerPingDB(c *gin.Context) {
 	if err := h.service.Repository.PingDB(); err != nil {
 		c.String(http.StatusInternalServerError, "DB connection is not available")
 	}
-	c.String(http.StatusOK, "DB connection succes")
+	c.String(http.StatusOK, "DB connection success")
 }
 
 //==================================================================
@@ -259,18 +259,18 @@ func (h *Handler) HandlerPostURL(c *gin.Context) {
 		c.String(http.StatusBadRequest, "error: Not Allowd request")
 		return
 	}
+	var response Response
+
 	shortURL, err := h.service.SaveURL(string(request.body), h.publicKey)
 	if err != nil {
 		if errors.Is(err, errors.Unwrap(err)) {
 			c.String(http.StatusConflict, "")
-			var response Response
 			response.ShortURL = shortURL
 			renderResponse(c, &response)
 		} else {
 			c.String(http.StatusInternalServerError, "error: Internal error")
 		}
 	} else {
-		var response Response
 		response.ShortURL = shortURL
 		renderResponse(c, &response)
 	}

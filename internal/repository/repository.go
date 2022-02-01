@@ -43,11 +43,11 @@ func (us *Storage) SaveURL(m *model.ShortenDTO, key string) (string, error) {
 	return shortURL, nil
 }
 func (us *Storage) SaveBatch(list *[]model.ShortenDTO, key string) error {
-	q := `insert into shortens
+	q := `INSERT INTO shortens
 	  (url_id,short_url,long_url,session_id)
-	  values
+	  VALUES
 	  ($1,$2,$3,
-	  (select id from sessions where session_id=$4));`
+	  (SELECT id FROM sessions WHERE session_id=$4));`
 
 	batch := &pgx.Batch{}
 	for _, val := range *list {
@@ -113,7 +113,6 @@ func (us *Storage) GetList(key string) ([]model.ShortenDTO, error) {
 	}
 	for rows.Next() {
 		var model model.ShortenDTO
-
 		err := rows.Scan(&model.ShortURL, &model.LongURL)
 		if err != nil {
 			return nil, err

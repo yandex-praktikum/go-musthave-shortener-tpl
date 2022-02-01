@@ -12,8 +12,8 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+//this interface implements pgx.Conn, pgx.Pool and pgx.Mock
 type Client interface {
-	//this interface need to mock BD in test(pgxmock have the same metods)
 	Query(context.Context, string, ...interface{}) (pgx.Rows, error)
 	QueryRow(context.Context, string, ...interface{}) pgx.Row
 	SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults
@@ -26,7 +26,7 @@ func NewDBClient(ctx context.Context, conf *configs.Config) (*pgxpool.Pool, erro
 		log.Fatal("Unable to create connection pool", "error", err)
 		return nil, err
 	}
-	log.Println("DB connection succes")
+	log.Println("DB connection success")
 	return pool, nil
 }
 
@@ -39,5 +39,5 @@ func Migration(conf *configs.Config) {
 
 	db.AutoMigrate(&model.Shorten{}, &model.Session{})
 	db.Model(&model.Shorten{}).AddForeignKey("session_ID", "Sessions(id)", "RESTRICT", "RESTRICT")
-	log.Println("Migration succes")
+	log.Println("Migration success")
 }

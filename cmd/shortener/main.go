@@ -32,7 +32,7 @@ func main() {
 	s := service.NewService(r, config)
 	h := handler.NewHandler(s)
 
-	//set server settings
+	//init router
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
@@ -50,6 +50,8 @@ func main() {
 	router.POST("/api/shorten/batch", h.HandlerSaveBatch)
 
 	router.NoRoute(func(c *gin.Context) { c.String(http.StatusBadRequest, "Not allowed requset") })
+
+	log.Println("Routes inited")
 
 	//start server
 	router.Run(config.ServerAdress)

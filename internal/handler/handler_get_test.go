@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -10,12 +12,14 @@ import (
 	"github.com/EMus88/go-musthave-shortener-tpl/configs"
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/app/service"
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository"
+	"github.com/EMus88/go-musthave-shortener-tpl/internal/repository/model"
 	"github.com/gin-gonic/gin"
 	"github.com/magiconair/properties/assert"
 	"github.com/pashagolub/pgxmock"
 )
 
-func TestHandler_HandlerGet(t *testing.T) {
+//test for endpoint "/"
+func Test_HandlerGet(t *testing.T) {
 	type want struct {
 		statusCode int
 		location   string
@@ -55,7 +59,7 @@ func TestHandler_HandlerGet(t *testing.T) {
 	s := service.NewService(r, config)
 	h := NewHandler(s)
 
-	//init server
+	//init router
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.GET("/:id", h.HandlerURLRelocation)
@@ -81,6 +85,103 @@ func TestHandler_HandlerGet(t *testing.T) {
 
 			assert.Equal(t, result.StatusCode, tt.want.statusCode)
 			assert.Equal(t, result.Header.Get("Location"), tt.want.location)
+
+		})
+	}
+}
+
+//================================================================================================
+
+//test for endpoint "/user/urls"
+func Test_HandlerGetList(t *testing.T) {
+	type want struct {
+		statusCode int
+		list       []model.ShortenDTO
+	}
+	tests := []struct {
+		name      string
+		sessionID string
+		want      want
+	}{
+		{
+			name:      "Ok",
+			sessionID: "43786d99935441d19fa91d029bf83878",
+
+			want: want{
+				statusCode: http.StatusOK,
+
+				list: []model.ShortenDTO{
+					{ShortURL: "http://localhost:8080/b5a41593cf656026",
+						LongURL: "https://yandex.ru/search/?text=go&lr=11351&clid=9403"},
+					{ShortURL: "http://localhost:8080/b5a41593cfdf6027",
+						LongURL: "https://yandex.ru/search/?text=go&lr=11351&clid=6508"},
+				},
+			},
+		},
+		{
+			name:      "Bad request",
+			sessionID: "sdfgsdfgsdfg",
+
+			want: want{
+				statusCode: http.StatusNoContent,
+				list:       []model.ShortenDTO{},
+			},
+		},
+	}
+	//init mock db connection
+	mock, err := pgxmock.NewConn()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer mock.Close(context.Background())
+
+	//init main components
+	config := configs.NewConfigForTest()
+	r := repository.NewStorage(mock)
+	s := service.NewService(r, config)
+	h := NewHandler(s)
+
+	//init router
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.Default()
+	router.GET("/user/urls", h.HandlerGetList)
+
+	//run tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			h.publicKey = "0ca876da1faed3aa87ae9d5ccfa5be17"
+
+			//set mock
+			urlRows := mock.NewRows([]string{"short_url", "long_url"}).
+				AddRow("http://localhost:8080/b5a41593cf656026", "https://yandex.ru/search/?text=go&lr=11351&clid=9403").
+				AddRow("http://localhost:8080/b5a41593cfdf6027", "https://yandex.ru/search/?text=go&lr=11351&clid=6508")
+
+			mock.ExpectQuery("SELECT short_url, long_url FROM shortens").
+				WithArgs(tt.sessionID).
+				WillReturnRows(urlRows)
+
+			//init http components
+			req := httptest.NewRequest(http.MethodGet, "/user/urls", nil)
+			w := httptest.NewRecorder()
+
+			router.ServeHTTP(w, req)
+
+			//read result
+			result := w.Result()
+			defer result.Body.Close()
+			body, err := ioutil.ReadAll(result.Body)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			data, _ := json.Marshal(tt.want.list)
+			list := string(data)
+			if list == "[]" {
+				list = ""
+			}
+			assert.Equal(t, result.StatusCode, tt.want.statusCode)
+			assert.Equal(t, string(body), list)
 
 		})
 	}
