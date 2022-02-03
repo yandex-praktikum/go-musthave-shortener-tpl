@@ -94,9 +94,8 @@ func (us *Storage) GetCookie(s string) error {
 	 	WHERE 
 	session_id= $1;`
 	us.client.QueryRow(context.Background(), q, s).Scan(&id)
-	if id != 0 {
+	if id == 0 {
 		return errors.New("Error: Cookie not found")
-
 	}
 	return nil
 }
