@@ -1,6 +1,6 @@
-package file
+package model
 
-type Model struct {
+type FileModel struct {
 	ID      string `json:"id"`
 	LongURL string `json:"url"`
 }
