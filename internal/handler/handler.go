@@ -34,7 +34,7 @@ func NewHandler(service *service.Service) *Handler {
 }
 
 //================================================================
-func isEncodingSupport(c *gin.Context) bool {
+func isEncodingSupported(c *gin.Context) bool {
 	//if the client supports compression
 	if strings.Contains(c.GetHeader("Accept-Encoding"), "qweqwe") {
 		return true
@@ -97,7 +97,7 @@ func parseRequest(c *gin.Context) (*Request, error) {
 //================================================================
 func renderResponse(c *gin.Context, response *Response) {
 
-	if isEncodingSupport(c) {
+	if isEncodingSupported(c) {
 		c.Status(http.StatusCreated)
 		gz := gzip.NewWriter(c.Writer)
 		defer gz.Close()
@@ -118,72 +118,38 @@ func renderResponse(c *gin.Context, response *Response) {
 }
 
 //==================================================
-
 func AuthMiddleware(h *Handler) gin.HandlerFunc {
-
 	return func(c *gin.Context) {
+		isValidCookie := true
+
 		sessionID, cookieErr := c.Cookie("session")
 		//if cookie is empty
 		if cookieErr != nil {
-			if !errors.Is(cookieErr, http.ErrNoCookie) {
-				c.String(http.StatusInternalServerError, "Auth error")
-				log.Fatal(cookieErr)
-			}
-			//create new cookie
-			encID, err := h.service.CreateNewSession()
-
-			if err != nil {
-				c.String(http.StatusInternalServerError, "Auth error")
-				log.Fatal(err)
-			}
-			sessionID = encID
+			isValidCookie = false
 			//if cookie is not empty
 		} else {
-			//validation seesion value
-			isValid := true
-			byteID, DecErr := hex.DecodeString(sessionID)
-			if DecErr != nil || len(byteID) != 16 {
-				isValid = false
+			//validation value of session
+			byteID, err := hex.DecodeString(sessionID)
+			if err != nil || len(byteID) != 16 {
+				isValidCookie = false
 			}
-			//if cookie value is valid
-			if isValid {
-				//read non-public key
-				key, err := h.service.Auth.ReadSessionID(sessionID)
-				if err != nil {
-					//create new cookie
-					encID, err := h.service.CreateNewSession()
-					if err != nil {
-						c.String(http.StatusInternalServerError, "Auth error")
-						log.Fatal(err)
-					}
-					sessionID = encID
-				} else {
-					//try find non-public key in data base
-					isFound := h.service.Repository.GetCookie(key)
-					//if non-public key was not found
-					if !isFound {
-						//create new cookie
-						encID, err := h.service.CreateNewSession()
-						if err != nil {
-							c.String(http.StatusInternalServerError, "Auth error")
-							log.Fatal(err)
-						}
-						sessionID = encID
-
-					}
-				}
-				//if cookie value is not valid
-			} else {
-				//create new cookie
-				encID, err := h.service.CreateNewSession()
-				if err != nil {
-					c.String(http.StatusInternalServerError, "Auth error")
-					log.Fatal(err)
-				}
-				sessionID = encID
+			key, err := h.service.Auth.ReadSessionID(sessionID)
+			if err != nil {
+				isValidCookie = false
 			}
-
+			if err := h.service.Repository.GetCookie(key); err != nil {
+				isValidCookie = false
+			}
 		}
+		//if valid session didn't found
+		if !isValidCookie {
+			encID, err := h.service.CreateNewSession()
+			if err != nil {
+				c.String(http.StatusInternalServerError, "Auth error")
+			}
+			sessionID = encID
+		}
+
 		h.publicKey = sessionID
 		c.SetCookie("session", sessionID, 3600, "", "localhost", false, true)
 		log.Println("Authentication success")

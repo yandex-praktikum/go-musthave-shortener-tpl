@@ -11,7 +11,7 @@ import (
 type Auth struct {
 }
 
-func (auth *Auth) CreateSissionID() (string, string, error) {
+func (auth *Auth) CreateSessionID() (string, string, error) {
 	//generate SessionID
 	id := idgenerator.CreateID(16)
 	src, err := hex.DecodeString(id)

@@ -18,7 +18,7 @@ func NewStorage(client Client) *Storage {
 	return &Storage{client: client}
 }
 
-func (us *Storage) SaveURL(m *model.ShortenDTO, key string) (string, error) {
+func (us *Storage) SaveURL(m *model.Shorten, key string) (string, error) {
 	var id int
 	var shortURL string
 	q := `INSERT INTO shortens
@@ -42,7 +42,7 @@ func (us *Storage) SaveURL(m *model.ShortenDTO, key string) (string, error) {
 	}
 	return shortURL, nil
 }
-func (us *Storage) SaveBatch(list *[]model.ShortenDTO, key string) error {
+func (us *Storage) SaveBatch(list *[]model.Shorten, key string) error {
 	q := `INSERT INTO shortens
 	  (url_id,short_url,long_url,session_id)
 	  VALUES
@@ -88,21 +88,21 @@ func (us *Storage) SaveCookie(s string) error {
 	return nil
 }
 
-func (us *Storage) GetCookie(s string) bool {
-	var isFound bool
+func (us *Storage) GetCookie(s string) error {
 	var id int
 	q := `SELECT id FROM sessions
 	 	WHERE 
 	session_id= $1;`
 	us.client.QueryRow(context.Background(), q, s).Scan(&id)
 	if id != 0 {
-		isFound = true
+		return errors.New("Error: Cookie not found")
+
 	}
-	return isFound
+	return nil
 }
 
-func (us *Storage) GetList(key string) ([]model.ShortenDTO, error) {
-	var list []model.ShortenDTO
+func (us *Storage) GetList(key string) ([]model.Shorten, error) {
+	var list []model.Shorten
 	q := `SELECT short_url, long_url 
 		FROM shortens 
 	WHERE 
@@ -112,7 +112,7 @@ func (us *Storage) GetList(key string) ([]model.ShortenDTO, error) {
 		return nil, err
 	}
 	for rows.Next() {
-		var model model.ShortenDTO
+		var model model.Shorten
 		err := rows.Scan(&model.ShortURL, &model.LongURL)
 		if err != nil {
 			return nil, err

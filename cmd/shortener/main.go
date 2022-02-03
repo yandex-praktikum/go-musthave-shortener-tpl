@@ -19,20 +19,23 @@ func main() {
 	//set new configuraion
 	config := configs.NewConfig()
 
-	//init data base connection
+	//data base connection
 	db, err := repository.NewDBClient(context.TODO(), config)
 	if err != nil {
 		log.Fatal(err)
 	}
-	//creat tables in data bese by migration models
+	//migration of database tables
 	repository.Migration(config)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	//init main modelus
+	//initialization of main modules
 	r := repository.NewStorage(db)
 	s := service.NewService(r, config)
 	h := handler.NewHandler(s)
 
-	//init router
+	//initializing router
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 

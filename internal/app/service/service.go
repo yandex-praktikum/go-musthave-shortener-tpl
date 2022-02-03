@@ -14,13 +14,13 @@ import (
 )
 
 type Repository interface {
-	SaveURL(shortModel *model.ShortenDTO, sessionID string) (string, error)
+	SaveURL(shortModel *model.Shorten, sessionID string) (string, error)
 	GetURL(id string) string
 	PingDB() error
-	GetCookie(s string) bool
+	GetCookie(s string) error
 	SaveCookie(s string) error
-	GetList(key string) ([]model.ShortenDTO, error)
-	SaveBatch(list *[]model.ShortenDTO, sessionID string) error
+	GetList(key string) ([]model.Shorten, error)
+	SaveBatch(list *[]model.Shorten, sessionID string) error
 }
 type Service struct {
 	Repository
@@ -34,7 +34,7 @@ func NewService(repos *repository.Storage, config *configs.Config) *Service {
 
 //save long URL in stotage and return short URL
 func (s *Service) SaveURL(longURL string, sessionID string) (string, error) {
-	var shortModel model.ShortenDTO
+	var shortModel model.Shorten
 	shortModel.URLID = idgenerator.CreateID(8)
 	shortModel.ShortURL = fmt.Sprint(s.Config.BaseURL, "/", shortModel.URLID)
 	shortModel.LongURL = longURL
@@ -75,7 +75,7 @@ func (s *Service) GetURL(key string) (string, error) {
 }
 
 func (s *Service) CreateNewSession() (string, error) {
-	id, encID, err := s.Auth.CreateSissionID()
+	id, encID, err := s.Auth.CreateSessionID()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -86,12 +86,12 @@ func (s *Service) CreateNewSession() (string, error) {
 	return encID, nil
 }
 func (s *Service) SaveBatch(list []model.BatchRequest, sessionID string) (*[]model.BatchResponse, error) {
-	var batch []model.ShortenDTO
+	var batch []model.Shorten
 	var response []model.BatchResponse
 
 	for _, val := range list {
 
-		var shortModel model.ShortenDTO
+		var shortModel model.Shorten
 		var responseModel model.BatchResponse
 
 		shortModel.URLID = idgenerator.CreateID(8)
