@@ -162,8 +162,13 @@ func (h *Handler) HandlerURLRelocation(c *gin.Context) {
 	id := c.Param("id")
 	longURL, err := h.service.GetURL(id)
 	if err != nil {
-		c.String(http.StatusBadRequest, err.Error())
-		return
+		if errors.Is(err, errors.Unwrap(err)) {
+			c.String(http.StatusGone, err.Error())
+			return
+		} else {
+			c.String(http.StatusBadRequest, err.Error())
+			return
+		}
 	}
 	c.Redirect(http.StatusTemporaryRedirect, longURL)
 }
@@ -242,4 +247,27 @@ func (h *Handler) HandlerPostURL(c *gin.Context) {
 		response.ShortURL = shortURL
 		renderResponse(c, &response)
 	}
+}
+
+//==================================================================
+func (h *Handler) HandlerDeleteURLs(c *gin.Context) {
+	var s []string
+	if err := c.ShouldBindJSON(&s); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Not allowed request"})
+		return
+	}
+
+	key, _ := h.service.Auth.ReadSessionID(h.publicKey)
+
+	go func(string, []string) {
+		for _, val := range s {
+			var model model.URL
+			model.URLID = val
+			model.SessionID = key
+			h.service.Repository.AddToBuffer(model)
+			log.Printf("Data was buffered: %v",model)
+
+		}
+	}(key, s)
+	c.Status(http.StatusAccepted)
 }

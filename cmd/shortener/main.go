@@ -4,6 +4,9 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/EMus88/go-musthave-shortener-tpl/configs"
 	"github.com/EMus88/go-musthave-shortener-tpl/internal/app/service"
@@ -13,6 +16,8 @@ import (
 
 	_ "github.com/lib/pq"
 )
+
+var done = make(chan os.Signal, 1)
 
 func main() {
 
@@ -35,28 +40,35 @@ func main() {
 	s := service.NewService(r, config)
 	h := handler.NewHandler(s)
 
+	go r.DeleteBufferRefreshing()
 	//initializing router
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
-
 	router.Use(handler.AuthMiddleware(h))
 
 	router.GET("/:id", h.HandlerURLRelocation)
 	router.GET("user/urls", h.HandlerGetList)
 	router.GET("/ping", h.HandlerPingDB)
-
 	router.POST("/", h.HandlerPostURL)
 	router.POST("/api/shorten", h.HandlerPostURL)
 	router.POST("/api/shorten/batch", h.HandlerSaveBatch)
+	router.DELETE("/api/user/urls", h.HandlerDeleteURLs)
 
 	router.NoRoute(func(c *gin.Context) { c.String(http.StatusBadRequest, "Not allowed requset") })
 
 	log.Println("Routes inited")
 
 	//start server
-	router.Run(config.ServerAdress)
+	go router.Run(config.ServerAdress)
+	log.Printf("Server started: %s", config.ServerAdress)
 
+	//shutdown
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-done
+	r.ShutdownChan <- struct{}{}
+	<-r.DeleteCompleted
+	log.Println("Server stopped")
 }

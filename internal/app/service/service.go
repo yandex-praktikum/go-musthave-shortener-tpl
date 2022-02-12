@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -14,13 +13,15 @@ import (
 )
 
 type Repository interface {
-	SaveURL(shortModel *model.Shorten, sessionID string) (string, error)
-	GetURL(id string) string
+	SaveURL(shortModel *model.URL, sessionID string) (string, error)
+	GetURL(id string) (string, error)
 	PingDB() error
 	GetCookie(s string) error
 	SaveCookie(s string) error
-	GetList(key string) ([]model.Shorten, error)
-	SaveBatch(list *[]model.Shorten, sessionID string) error
+	GetList(key string) ([]model.URL, error)
+	SaveBatch(list *[]model.URL, sessionID string) error
+	DeleteURLs(s []model.URL)
+	AddToBuffer(model model.URL)
 }
 type Service struct {
 	Repository
@@ -29,12 +30,15 @@ type Service struct {
 }
 
 func NewService(repos *repository.Storage, config *configs.Config) *Service {
-	return &Service{Repository: repos, Config: *config}
+	return &Service{
+		Repository: repos,
+		Config:     *config,
+	}
 }
 
 //save long URL in stotage and return short URL
 func (s *Service) SaveURL(longURL string, sessionID string) (string, error) {
-	var shortModel model.Shorten
+	var shortModel model.URL
 	shortModel.URLID = idgenerator.CreateID(8)
 	shortModel.ShortURL = fmt.Sprint(s.Config.BaseURL, "/", shortModel.URLID)
 	shortModel.LongURL = longURL
@@ -67,9 +71,9 @@ func (s *Service) SaveURL(longURL string, sessionID string) (string, error) {
 
 //get long URL from stotage by short URL
 func (s *Service) GetURL(key string) (string, error) {
-	originURL := s.Repository.GetURL(key)
-	if originURL == "" {
-		return "", errors.New("error: not found data")
+	originURL, err := s.Repository.GetURL(key)
+	if err != nil {
+		return "", err
 	}
 	return originURL, nil
 }
@@ -86,12 +90,12 @@ func (s *Service) CreateNewSession() (string, error) {
 	return encID, nil
 }
 func (s *Service) SaveBatch(list []model.BatchRequest, sessionID string) (*[]model.BatchResponse, error) {
-	var batch []model.Shorten
+	var batch []model.URL
 	var response []model.BatchResponse
 
 	for _, val := range list {
 
-		var shortModel model.Shorten
+		var shortModel model.URL
 		var responseModel model.BatchResponse
 
 		shortModel.URLID = idgenerator.CreateID(8)

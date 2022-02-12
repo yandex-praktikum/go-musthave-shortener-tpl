@@ -32,7 +32,9 @@ func NewDBClient(ctx context.Context, conf *configs.Config) (*pgxpool.Pool, erro
 func Migration(conf *configs.Config) error {
 	db, err := gorm.Open("postgres", conf.DBConnectionStr)
 	if err != nil {
+		log.Fatal(err)
 		return err
+
 	}
 	defer db.Close()
 
