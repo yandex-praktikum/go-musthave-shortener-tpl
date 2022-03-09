@@ -2,6 +2,7 @@
 // of HTTP requests and responses.
 package apimodel
 
+// LongURLJson is a request model that a Client will use to send an original URL to be shortened
 type LongURLJson struct {
 	URL string `json:"url"`
 }
