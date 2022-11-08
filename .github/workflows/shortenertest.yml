@@ -75,7 +75,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           shortenertest -test.v -test.run=^TestIteration1$ \
               -binary-path=cmd/shortener/shortener
@@ -98,7 +105,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           shortenertest -test.v -test.run=^TestIteration2$ -source-path=.
 
@@ -119,7 +133,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           shortenertest -test.v -test.run=^TestIteration3$ -source-path=.
 
@@ -139,7 +160,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           shortenertest -test.v -test.run=^TestIteration4$ \
               -source-path=. \
@@ -160,7 +188,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           SERVER_HOST=$(random domain)
           SERVER_PORT=$(random unused-port)
@@ -184,7 +219,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           SERVER_PORT=$(random unused-port)
           TEMP_FILE=$(random tempfile)
@@ -207,7 +249,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           SERVER_PORT=$(random unused-port)
           TEMP_FILE=$(random tempfile)
@@ -229,7 +278,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           shortenertest -test.v -test.run=^TestIteration8$ \
               -source-path=. \
@@ -246,7 +302,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           shortenertest -test.v -test.run=^TestIteration9$ \
               -source-path=. \
@@ -262,7 +325,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           shortenertest -test.v -test.run=^TestIteration10$ \
               -source-path=. \
@@ -278,7 +348,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           shortenertest -test.v -test.run=^TestIteration11$ \
               -binary-path=cmd/shortener/shortener \
@@ -292,7 +369,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           shortenertest -test.v -test.run=^TestIteration12$ \
               -binary-path=cmd/shortener/shortener \
@@ -305,7 +389,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           shortenertest -test.v -test.run=^TestIteration13$ \
               -binary-path=cmd/shortener/shortener \
@@ -317,7 +408,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           shortenertest -test.v -test.run=^TestIteration14$ \
               -binary-path=cmd/shortener/shortener \
@@ -329,7 +427,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           shortenertest -test.v -test.run=^TestIteration14$ \
               -binary-path=cmd/shortener/shortener
@@ -340,7 +445,14 @@ jobs:
           github.head_ref == 'iter14' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           go test -v -race ./...
 
@@ -349,7 +461,14 @@ jobs:
           github.ref == 'refs/heads/main' ||
           github.head_ref == 'iter15' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           shortenertest -test.v -test.run=^TestIteration15$ -source-path=.
 
@@ -357,48 +476,97 @@ jobs:
         if: |
           github.ref == 'refs/heads/main' ||
           github.head_ref == 'iter16' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           shortenertest -test.v -test.run=^TestIteration16$ -source-path=.
 
       - name: "Code increment #17"
         if: |
           github.ref == 'refs/heads/main' ||
-          github.head_ref == 'iter17'
+          github.head_ref == 'iter17' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           shortenertest -test.v -test.run=^TestIteration17$ -source-path=.
 
       - name: "Code increment #18"
-        if: github.repository == ''
+        if: |
+          github.ref == 'refs/heads/main' ||
+          github.head_ref == 'iter18' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           echo "Not implemented"
 
       - name: "Code increment #19"
-        if: github.repository == ''
+        if: |
+          github.ref == 'refs/heads/main' ||
+          github.head_ref == 'iter19' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           echo "Not implemented"
 
       - name: "Code increment #20"
-        if: github.repository == ''
+        if: |
+          github.ref == 'refs/heads/main' ||
+          github.head_ref == 'iter20' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           echo "Not implemented"
 
       - name: "Code increment #21"
-        if: github.repository == ''
+        if: |
+          github.ref == 'refs/heads/main' ||
+          github.head_ref == 'iter21' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           echo "Not implemented"
 
       - name: "Code increment #22"
-        if: github.repository == ''
+        if: |
+          github.ref == 'refs/heads/main' ||
+          github.head_ref == 'iter22' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           echo "Not implemented"
 
       - name: "Code increment #23"
-        if: github.repository == ''
+        if: |
+          github.ref == 'refs/heads/main' ||
+          github.head_ref == 'iter23' ||
+          github.head_ref == 'iter24'
         run: |
           echo "Not implemented"
 
       - name: "Code increment #24"
-        if: github.repository == ''
+        if: |
+          github.ref == 'refs/heads/main' ||
+          github.head_ref == 'iter24'
         run: |
           echo "Not implemented"
